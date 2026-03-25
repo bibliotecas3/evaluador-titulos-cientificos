@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluador de Títulos Científicos</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F2EC;
+    --bg2: #EDE9E0;
+    --bg3: #E3DDD2;
+    --ink: #1A1714;
+    --ink2: #4A453E;
+    --ink3: #7A746C;
+    --accent: #C4440E;
+    --accent2: #E8622A;
+    --green: #2D6A4F;
+    --green-bg: #D8F0E5;
+    --amber: #92600A;
+    --amber-bg: #FAEAC0;
+    --red: #8B1A1A;
+    --red-bg: #F5DADA;
+    --blue: #1A3A6B;
+    --blue-bg: #DAE8F5;
+    --purple: #3D2870;
+    --purple-bg: #E8E0F5;
+    --border: #D0C9BE;
+    --border2: #B8B0A4;
+    --radius: 4px;
+    --radius-lg: 8px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .logo span { color: var(--accent); }
+  .tagline {
+    font-size: 12px;
+    color: var(--ink3);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  /* MAIN LAYOUT */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem 4rem;
+  }
+
+  /* INPUT SECTION */
+  .input-section {
+    margin-bottom: 2.5rem;
+  }
+  .input-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .title-input-wrap {
+    position: relative;
+  }
+  textarea#titleInput {
+    width: 100%;
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    line-height: 1.4;
+    color: var(--ink);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--ink);
+    padding: 0.5rem 0 0.75rem;
+    resize: none;
+    outline: none;
+    min-height: 70px;
+    transition: border-color 0.2s;
+    font-style: italic;
+  }
+  textarea#titleInput::placeholder {
+    color: var(--border2);
+    font-style: italic;
+  }
+  textarea#titleInput:focus { border-bottom-color: var(--accent); }
+  .char-count {
+    position: absolute;
+    right: 0;
+    bottom: -20px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink3);
+    transition: color 0.2s;
+  }
+  .char-count.warn { color: var(--amber); }
+  .char-count.error { color: var(--red); }
+
+  /* AI BUTTON */
+  .ai-row {
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .btn-analyze {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    padding: 10px 22px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-analyze:hover { background: var(--accent); }
+  .btn-analyze:active { transform: scale(0.98); }
+  .btn-analyze:disabled { background: var(--border); cursor: not-allowed; }
+  .btn-clear {
+    font-family: 'Instrument Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink3);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 9px 16px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-clear:hover { border-color: var(--border2); color: var(--ink2); }
+  .ai-note {
+    font-size: 11px;
+    color: var(--ink3);
+    font-family: 'DM Mono', monospace;
+  }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(245,242,236,0.3);
+    border-top-color: var(--bg);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RESULTS SECTION */
+  #results { display: none; opacity: 0; transition: opacity 0.4s; }
+  #results.visible { display: block; opacity: 1; }
+
+  /* SCORE PANEL */
+  .score-panel {
+    background: var(--ink);
+    color: var(--bg);
+    border-radius: var(--radius-lg);
+    padding: 1.75rem 2rem;
+    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 2rem;
+  }
+  .score-big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px;
+    line-height: 1;
+    color: var(--bg);
+  }
+  .score-big span {
+    font-size: 22px;
+    color: rgba(245,242,236,0.5);
+    vertical-align: top;
+    margin-top: 8px;
+    display: inline-block;
+  }
+  .score-mid { flex: 1; }
+  .verdict-text {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--bg);
+  }
+  .progress-outer {
+    height: 4px;
+    background: rgba(245,242,236,0.15);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .progress-inner {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.8s cubic-bezier(.4,0,.2,1);
+  }
+  .score-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: rgba(245,242,236,0.5);
+  }
+  .ai-verdict {
+    max-width: 260px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: rgba(245,242,236,0.7);
+    font-style: italic;
+    border-left: 2px solid rgba(245,242,236,0.2);
+    padding-left: 12px;
+  }
+
+  /* QUICK STATS */
+  .quick-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1rem 0.75rem;
+  }
+  .stat-card .stat-val {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-card .stat-lbl {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--ink3);
+    text-transform: uppercase;
+  }
+  .stat-card.ok .stat-val { color: var(--green); }
+  .stat-card.warn .stat-val { color: var(--amber); }
+  .stat-card.err .stat-val { color: var(--red); }
+
+  /* AI FEEDBACK BOX */
+  .ai-feedback {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .ai-feedback-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0.75rem;
+  }
+  .ai-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--bg);
+    padding: 3px 8px;
+    border-radius: 2px;
+  }
+  .ai-feedback-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink2);
+  }
+  .ai-feedback-body {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--ink2);
+  }
+  .ai-feedback-body p { margin-bottom: 0.5rem; }
+  .ai-feedback-body p:last-child { margin-bottom: 0; }
+
+  /* CHECKLIST SECTIONS */
+  .section-wrap { margin-bottom: 1.25rem; }
+  .section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.85rem 1.1rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .section-head:hover { background: var(--bg3); }
+  .section-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .section-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    flex: 1;
+  }
+  .section-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--ink3);
+  }
+  .chev {
+    font-size: 9px;
+    color: var(--ink3);
+    transition: transform 0.2s;
+  }
+  .chev.open { transform: rotate(180deg); }
+  .section-items {
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow: hidden;
+    display: none;
+  }
+  .section-items.open { display: block; }
+  .item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .item-row:last-child { border-bottom: none; }
+  .item-row:hover { background: var(--bg2); }
+  .item-row.auto-checked { background: rgba(45,106,79,0.04); }
+  .item-row.auto-failed { background: rgba(139,26,26,0.04); }
+  .cb {
+    width: 18px; height: 18px; border-radius: 3px;
+    border: 1.5px solid var(--border2); flex-shrink: 0;
+    margin-top: 1px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .cb.checked { background: var(--green); border-color: var(--green); }
+  .cb.checked::after {
+    content: '';
+    display: block;
+    width: 9px; height: 5px;
+    border-left: 2px solid #fff;
+    border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translateY(-1px);
+  }
+  .cb.failed { border-color: var(--red); background: var(--red-bg); }
+  .cb.failed::after {
+    content: '×';
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--red);
+    line-height: 1;
+  }
+  .item-body { flex: 1; }
+  .item-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .item-note {
+    font-size: 12px;
+    color: var(--ink3);
+    line-height: 1.5;
+    margin-top: 2px;
+  }
+  .item-ai-note {
+    font-size: 11px;
+    color: var(--accent);
+    line-height: 1.4;
+    margin-top: 4px;
+    font-style: italic;
+    display: none;
+  }
+  .item-ai-note.show { display: block; }
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 2px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge-req { background: var(--red-bg); color: var(--red); }
+  .badge-rec { background: var(--blue-bg); color: var(--blue); }
+  .badge-auto {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  /* SUGGESTIONS */
+  .suggestions-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .sug-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    margin-bottom: 1rem;
+  }
+  .sug-list { display: flex; flex-direction: column; gap: 8px; }
+  .sug-item {
+    font-size: 13px;
+    color: var(--ink2);
+    line-height: 1.6;
+    padding: 0.6rem 0.9rem;
+    background: var(--bg);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--accent);
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--ink3);
+  }
+  footer a { color: var(--ink3); }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    main { padding: 2rem 1rem 3rem; }
+    .score-panel { grid-template-columns: 1fr; gap: 1rem; }
+    .ai-verdict { max-width: 100%; border-left: none; padding-left: 0; border-top: 1px solid rgba(245,242,236,0.15); padding-top: 10px; }
+    .quick-stats { grid-template-columns: repeat(2, 1fr); }
+    header { flex-direction: column; gap: 4px; }
+  }
+
+  /* LOADING STATE */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(245,242,236,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .loading-overlay.show { display: flex; }
+  .loading-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--ink2);
+  }
+  .loading-dots::after {
+    content: '...';
+    animation: dots 1.2s steps(4, end) infinite;
+  }
+  @keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div style="width:32px;height:32px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite"></div>
+  <div class="loading-text">Analizando título<span class="loading-dots"></span></div>
+</div>
+
+<header>
+  <div class="logo">TítuloCien<span>tífico</span></div>
+  <div class="tagline">Evaluador normativo · ICMJE · MeSH · CONSORT/STROBE</div>
+</header>
+
+<main>
+  <div class="input-section">
+    <label class="input-label" for="titleInput">Introduce el título del artículo científico</label>
+    <div class="title-input-wrap">
+      <textarea id="titleInput" rows="2" placeholder="p. ej. Efectividad de la terapia cognitivo-conductual frente a la farmacoterapia en el trastorno depresivo mayor: ensayo controlado aleatorizado multicéntrico"></textarea>
+      <span class="char-count" id="charCount">0 / 280</span>
+    </div>
+    <div class="ai-row">
+      <button class="btn-analyze" id="btnAnalyze" onclick="analyzeTitle()" disabled>
+        <span class="spinner" id="spinner"></span>
+        <span id="btnText">Evaluar título</span>
+      </button>
+      <button class="btn-clear" onclick="clearAll()">Limpiar</button>
+      <span class="ai-note">Análisis automático con IA</span>
+    </div>
+  </div>
+
+  <div id="results">
+    <!-- Score panel -->
+    <div class="score-panel" id="scorePanel">
+      <div class="score-big" id="scoreBig">0<span>/20</span></div>
+      <div class="score-mid">
+        <div class="verdict-text" id="verdictText">—</div>
+        <div class="progress-outer"><div class="progress-inner" id="progressInner" style="width:0%"></div></div>
+        <div class="score-pct" id="scorePct">0% de criterios cumplidos</div>
+      </div>
+      <div class="ai-verdict" id="aiVerdict">—</div>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="quick-stats">
+      <div class="stat-card" id="statWords">
+        <div class="stat-val" id="statWordsVal">—</div>
+        <div class="stat-lbl">Palabras</div>
+      </div>
+      <div class="stat-card" id="statChars">
+        <div class="stat-val" id="statCharsVal">—</div>
+        <div class="stat-lbl">Caracteres</div>
+      </div>
+      <div class="stat-card" id="statObl">
+        <div class="stat-val" id="statOblVal">—</div>
+        <div class="stat-lbl">Obligatorios ✓</div>
+      </div>
+      <div class="stat-card" id="statRec">
+        <div class="stat-val" id="statRecVal">—</div>
+        <div class="stat-lbl">Recomendados ✓</div>
+      </div>
+    </div>
+
+    <!-- AI Feedback -->
+    <div class="ai-feedback" id="aiFeedbackBox" style="display:none">
+      <div class="ai-feedback-header">
+        <span class="ai-tag">Análisis IA</span>
+        <span class="ai-feedback-title">Evaluación detallada del título</span>
+      </div>
+      <div class="ai-feedback-body" id="aiFeedbackBody"></div>
+    </div>
+
+    <!-- Checklist sections -->
+    <div id="checklistContainer"></div>
+
+    <!-- Suggestions -->
+    <div class="suggestions-section" id="suggestionsBox" style="display:none">
+      <div class="sug-header">Sugerencias de mejora generadas por IA</div>
+      <div class="sug-list" id="sugList"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Basado en: ICMJE Recommendations · CONSORT 2010 · STROBE · PRISMA · MeSH/DeCS NCBI · Guías editoriales BMJ, Lancet, NEJM, JAMA<br>
+  <a href="https://www.icmje.org" target="_blank">icmje.org</a> · 
+  <a href="https://www.equator-network.org" target="_blank">equator-network.org</a> · 
+  <a href="https://meshb.nlm.nih.gov" target="_blank">MeSH Browser</a>
+</footer>
+
+<script>
+const CRITERIA = [
+  {
+    id: "estructura",
+    title: "Estructura y taxonomía",
+    color: "#534AB7",
+    items: [
+      { id: "descriptivo", label: "Título descriptivo o indicativo", note: "Describe el tema sin revelar conclusiones prematuramente. Preferido para la mayoría de investigaciones primarias.", req: true,
+        autoKey: "descriptivo" },
+      { id: "compuesto", label: "Uso apropiado del título compuesto", note: "Si usa dos puntos o guion, estos separan correctamente el tema principal del diseño o enfoque específico.", req: false,
+        autoKey: "compuesto" },
+      { id: "noDeclarativo", label: "Sin estilo declarativo en artículos originales", note: "El título no expone el hallazgo como verdad absoluta; evita el sesgo de publicación.", req: true,
+        autoKey: "no_declarativo" },
+      { id: "noInterrogativo", label: "Uso prudente de la forma interrogativa", note: "Los títulos en forma de pregunta se reservan para suscitar interés; no son estándar en investigación primaria.", req: false,
+        autoKey: "no_interrogativo" },
+    ]
+  },
+  {
+    id: "guias",
+    title: "Cumplimiento de guías internacionales",
+    color: "#0F6E56",
+    items: [
+      { id: "disenio", label: "Menciona el diseño del estudio", note: "Según CONSORT (ECA), STROBE (observacionales) o PRISMA (revisiones): el tipo de estudio debe figurar explícitamente.", req: true,
+        autoKey: "menciona_disenio" },
+      { id: "coherente", label: "Coherente con el contenido del manuscrito", note: "Recomendación ICMJE: el título refleja fielmente los objetivos, población y resultados del estudio.", req: true,
+        autoKey: "coherente" },
+      { id: "sinRelleno", label: "Sin detalles innecesarios ni relleno", note: "ICMJE: concisión; el título no incluye información que no contribuye a identificar el estudio.", req: true,
+        autoKey: "sin_relleno" },
+    ]
+  },
+  {
+    id: "concision",
+    title: "Concisión y longitud",
+    color: "#993C1D",
+    items: [
+      { id: "chars", label: "Extensión ≤ 280 caracteres con espacios", note: "Garantiza legibilidad en plataformas de indexación y referencias bibliográficas.", req: false,
+        autoKey: "chars_ok" },
+      { id: "palabras", label: "Entre 10 y 15 palabras", note: "Rango recomendado para equilibrar información y brevedad.", req: false,
+        autoKey: "palabras_ok" },
+      { id: "sinBasura", label: "Sin 'palabras basura'", note: "Excluye frases como «Un estudio sobre…», «Investigación acerca de…» u «Observaciones preliminares de…».", req: true,
+        autoKey: "sin_basura" },
+    ]
+  },
+  {
+    id: "seo",
+    title: "Visibilidad e indexación (SEO académico)",
+    color: "#185FA5",
+    items: [
+      { id: "kwInicio", label: "Palabras clave al inicio del título", note: "Los términos más relevantes en las primeras posiciones mejoran la recuperación en PubMed, Scopus y Google Scholar.", req: true,
+        autoKey: "kw_inicio" },
+      { id: "mesh", label: "Incluye descriptores MeSH o DeCS", note: "Asegura indexación correcta en MEDLINE/PubMed. Los descriptores deben emplearse en su forma normalizada.", req: true,
+        autoKey: "incluye_mesh" },
+      { id: "sinAbrev", label: "Sin abreviaturas no universales", note: "Evita acrónimos salvo los aceptados globalmente (VIH, ADN, IMC). Las abreviaturas reducen la recuperabilidad.", req: true,
+        autoKey: "sin_abrev" },
+      { id: "sinMarca", label: "Sin nombres comerciales o de marca", note: "Usa la denominación común internacional (DCI) para fármacos e intervenciones.", req: false,
+        autoKey: "sin_marca" },
+    ]
+  },
+  {
+    id: "etica",
+    title: "Claridad, precisión y ética editorial",
+    color: "#854F0B",
+    items: [
+      { id: "comprensible", label: "Comprensible para audiencia multidisciplinar", note: "Lenguaje directo y técnico pero accesible; evita jerga excesivamente especializada sin ganancia informativa.", req: true,
+        autoKey: "comprensible" },
+      { id: "noClickbait", label: "Sin lenguaje sensacionalista ni clickbait", note: "No contiene signos de exclamación, superlativos injustificados ni giros publicitarios.", req: true,
+        autoKey: "no_clickbait" },
+      { id: "fiel", label: "No promete más de lo que el estudio demuestra", note: "El título no sugiere causalidad si el diseño solo permite asociación; no generaliza indebidamente.", req: true,
+        autoKey: "fiel_contenido" },
+      { id: "equidad", label: "Evita sesgos de género, etnia o región", note: "Según recomendaciones SAGER y políticas de equidad editorial: el lenguaje es inclusivo y no discriminatorio.", req: false,
+        autoKey: "sin_sesgo" },
+      { id: "sinNums", label: "Sin datos numéricos de resultados en el título", note: "Incluir cifras específicas puede condicionar la lectura antes de conocer el contexto metodológico.", req: false,
+        autoKey: "sin_numeros_resultado" },
+    ]
+  }
+];
+
+const TOTAL = CRITERIA.reduce((a, s) => a + s.items.length, 0);
+const TOTAL_OBL = CRITERIA.reduce((a, s) => a + s.items.filter(i => i.req).length, 0);
+const TOTAL_REC = TOTAL - TOTAL_OBL;
+
+let state = {};
+let aiResults = {};
+let aiNotes = {};
+CRITERIA.forEach(s => s.items.forEach(it => { state[it.id] = false; }));
+
+// Build UI
+function buildChecklist() {
+  const cont = document.getElementById('checklistContainer');
+  cont.innerHTML = '';
+  CRITERIA.forEach(sec => {
+    const wrap = document.createElement('div');
+    wrap.className = 'section-wrap';
+    wrap.id = 'sec-wrap-' + sec.id;
+
+    const head = document.createElement('div');
+    head.className = 'section-head';
+    head.innerHTML = `
+      <div class="section-dot" style="background:${sec.color}"></div>
+      <span class="section-name">${sec.title}</span>
+      <span class="section-score" id="sec-score-${sec.id}">0/${sec.items.length}</span>
+      <span class="chev open" id="chev-${sec.id}">▼</span>
+    `;
+    head.onclick = () => toggleSection(sec.id);
+
+    const items = document.createElement('div');
+    items.className = 'section-items open';
+    items.id = 'sec-items-' + sec.id;
+
+    sec.items.forEach(it => {
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.id = 'row-' + it.id;
+      row.onclick = () => toggleItem(it.id);
+      row.innerHTML = `
+        <div class="cb" id="cb-${it.id}"></div>
+        <div class="item-body">
+          <div class="item-label">${it.label}
+            ${it.req ? '<span class="badge badge-req">obligatorio</span>' : '<span class="badge badge-rec">recomendado</span>'}
+            <span class="badge badge-auto" id="badge-auto-${it.id}" style="display:none">IA</span>
+          </div>
+          <div class="item-note">${it.note}</div>
+          <div class="item-ai-note" id="ai-note-${it.id}"></div>
+        </div>
+      `;
+      items.appendChild(row);
+    });
+
+    wrap.appendChild(head);
+    wrap.appendChild(items);
+    cont.appendChild(wrap);
+  });
+}
+
+function toggleSection(sid) {
+  const items = document.getElementById('sec-items-' + sid);
+  const chev = document.getElementById('chev-' + sid);
+  items.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+function toggleItem(id) {
+  state[id] = !state[id];
+  renderItem(id);
+  updateScore();
+}
+
+function renderItem(id) {
+  const cb = document.getElementById('cb-' + id);
+  const row = document.getElementById('row-' + id);
+  cb.className = 'cb' + (state[id] ? ' checked' : '');
+  row.classList.remove('auto-checked', 'auto-failed');
+}
+
+function applyAiResults(results, notes) {
+  CRITERIA.forEach(sec => {
+    sec.items.forEach(it => {
+      if (results.hasOwnProperty(it.autoKey)) {
+        const val = results[it.autoKey];
+        state[it.id] = val;
+        const cb = document.getElementById('cb-' + it.id);
+        const row = document.getElementById('row-' + it.id);
+        const badge = document.getElementById('badge-auto-' + it.id);
+        const aiNote = document.getElementById('ai-note-' + it.id);
+
+        cb.className = 'cb' + (val ? ' checked' : ' failed');
+        row.classList.remove('auto-checked', 'auto-failed');
+        row.classList.add(val ? 'auto-checked' : 'auto-failed');
+        badge.style.display = 'inline-block';
+
+        if (notes && notes[it.autoKey]) {
+          aiNote.textContent = notes[it.autoKey];
+          aiNote.classList.add('show');
+        }
+      }
+    });
+  });
+  updateScore();
+}
+
+function updateScore() {
+  const score = Object.values(state).filter(Boolean).length;
+  const pct = Math.round(score / TOTAL * 100);
+  const oblDone = CRITERIA.reduce((a, s) => a + s.items.filter(it => it.req && state[it.id]).length, 0);
+  const recDone = CRITERIA.reduce((a, s) => a + s.items.filter(it => !it.req && state[it.id]).length, 0);
+
+  document.getElementById('scoreBig').innerHTML = score + '<span>/' + TOTAL + '</span>';
+  document.getElementById('scorePct').textContent = pct + '% de criterios cumplidos';
+
+  const { text, color } = getVerdict(pct, oblDone);
+  document.getElementById('verdictText').textContent = text;
+  document.getElementById('progressInner').style.width = pct + '%';
+  document.getElementById('progressInner').style.background = color;
+
+  // Section scores
+  CRITERIA.forEach(sec => {
+    const done = sec.items.filter(it => state[it.id]).length;
+    document.getElementById('sec-score-' + sec.id).textContent = done + '/' + sec.items.length;
+  });
+
+  // Stats
+  document.getElementById('statOblVal').textContent = oblDone + '/' + TOTAL_OBL;
+  document.getElementById('statOblVal').parentElement.className = 'stat-card ' + (oblDone === TOTAL_OBL ? 'ok' : oblDone >= TOTAL_OBL * 0.7 ? 'warn' : 'err');
+  document.getElementById('statRecVal').textContent = recDone + '/' + TOTAL_REC;
+  document.getElementById('statRecVal').parentElement.className = 'stat-card ' + (recDone === TOTAL_REC ? 'ok' : 'warn');
+}
+
+function getVerdict(pct, oblDone) {
+  if (oblDone < TOTAL_OBL * 0.5) return { text: 'Insuficiente — título debe reformularse', color: '#E24B4A' };
+  if (pct === 100) return { text: 'Excelente — título óptimo según normativas', color: '#2D6A4F' };
+  if (pct >= 80) return { text: 'Muy bueno — pequeños ajustes recomendados', color: '#639922' };
+  if (pct >= 60) return { text: 'Aceptable — requiere revisión en algunos criterios', color: '#BA7517' };
+  if (pct >= 40) return { text: 'Deficiente — múltiples criterios incumplidos', color: '#D85A30' };
+  return { text: 'Insuficiente — título debe reformularse', color: '#E24B4A' };
+}
+
+// Input handling
+const input = document.getElementById('titleInput');
+const btn = document.getElementById('btnAnalyze');
+const charCount = document.getElementById('charCount');
+
+input.addEventListener('input', () => {
+  const len = input.value.length;
+  charCount.textContent = len + ' / 280';
+  charCount.className = 'char-count' + (len > 280 ? ' error' : len > 220 ? ' warn' : '');
+  btn.disabled = input.value.trim().length < 5;
+  input.style.height = 'auto';
+  input.style.height = input.scrollHeight + 'px';
+});
+
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) analyzeTitle();
+});
+
+async function analyzeTitle() {
+  const title = input.value.trim();
+  if (!title) return;
+
+  const overlay = document.getElementById('loadingOverlay');
+  overlay.classList.add('show');
+  btn.disabled = true;
+  document.getElementById('spinner').style.display = 'block';
+  document.getElementById('btnText').textContent = 'Analizando...';
+
+  const words = title.split(/\s+/).filter(Boolean).length;
+  const chars = title.length;
+
+  document.getElementById('statWordsVal').textContent = words;
+  document.getElementById('statWordsVal').parentElement.className = 'stat-card ' + (words >= 10 && words <= 15 ? 'ok' : words <= 20 ? 'warn' : 'err');
+  document.getElementById('statCharsVal').textContent = chars;
+  document.getElementById('statCharsVal').parentElement.className = 'stat-card ' + (chars <= 280 ? 'ok' : 'err');
+
+  const prompt = `Eres un experto en metodología de la investigación biomédica y cumplimiento de normativas editoriales internacionales (ICMJE, CONSORT, STROBE, PRISMA, MeSH/DeCS, EQUATOR Network).
+
+Analiza el siguiente título de artículo científico de salud y evalúa cada criterio indicando true (cumple) o false (no cumple). Sé preciso, crítico y basado solo en lo que puede inferirse del título.
+
+TÍTULO: "${title}"
+
+Estadísticas calculadas automáticamente:
+- Número de palabras: ${words}
+- Número de caracteres: ${chars}
+
+Responde EXCLUSIVAMENTE con un JSON sin markdown con esta estructura exacta:
+
+{
+  "evaluacion": {
+    "descriptivo": true/false,
+    "compuesto": true/false,
+    "no_declarativo": true/false,
+    "no_interrogativo": true/false,
+    "menciona_disenio": true/false,
+    "coherente": true/false,
+    "sin_relleno": true/false,
+    "chars_ok": true/false,
+    "palabras_ok": true/false,
+    "sin_basura": true/false,
+    "kw_inicio": true/false,
+    "incluye_mesh": true/false,
+    "sin_abrev": true/false,
+    "sin_marca": true/false,
+    "comprensible": true/false,
+    "no_clickbait": true/false,
+    "fiel_contenido": true/false,
+    "sin_sesgo": true/false,
+    "sin_numeros_resultado": true/false
+  },
+  "notas": {
+    "descriptivo": "breve razón (máx 15 palabras)",
+    "menciona_disenio": "breve razón",
+    "incluye_mesh": "breve razón",
+    "kw_inicio": "breve razón",
+    "sin_abrev": "breve razón",
+    "fiel_contenido": "breve razón"
+  },
+  "resumen": "Párrafo de 3-4 frases evaluando el título globalmente, sus fortalezas y sus debilidades principales.",
+  "sugerencias": [
+    "Sugerencia concreta 1 de mejora",
+    "Sugerencia concreta 2",
+    "Sugerencia concreta 3"
+  ],
+  "valoracion_global": "Frase corta de valoración (máx 12 palabras)"
+}
+
+Para chars_ok: ${chars <= 280} (${chars} caracteres)
+Para palabras_ok: ${words >= 10 && words <= 15} (${words} palabras)`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const raw = data.content[0].text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(raw);
+
+    applyAiResults(parsed.evaluacion, parsed.notas);
+
+    // Feedback box
+    if (parsed.resumen) {
+      document.getElementById('aiFeedbackBox').style.display = 'block';
+      document.getElementById('aiFeedbackBody').innerHTML = '<p>' + parsed.resumen + '</p>';
+      document.getElementById('aiVerdict').textContent = parsed.valoracion_global || '—';
+    }
+
+    // Suggestions
+    if (parsed.sugerencias && parsed.sugerencias.length) {
+      document.getElementById('suggestionsBox').style.display = 'block';
+      const list = document.getElementById('sugList');
+      list.innerHTML = '';
+      parsed.sugerencias.forEach(s => {
+        const d = document.createElement('div');
+        d.className = 'sug-item';
+        d.textContent = s;
+        list.appendChild(d);
+      });
+    }
+
+  } catch (e) {
+    // Fallback: auto-detect some basic criteria
+    const lower = title.toLowerCase();
+    const hasQuestion = title.includes('?');
+    const hasExcl = title.includes('!');
+    const hasStudyType = /ensayo|estudio|cohorte|aleatori|randomiz|sistematic|meta.an|revisión|casos y control|transversal|longitudinal|observacional|prospectiv|retrospectiv|piloto|descriptivo/i.test(title);
+    const hasTrashWords = /^(un |una |el |la |los |las |investigaci[oó]n sobre|estudio (de|sobre|acerca)|observaciones)/i.test(title);
+    const hasAbrev = /\b[A-Z]{2,5}\b/.test(title) && !/\b(VIH|ADN|ARN|IMC|OMS|OPS|ECA|ECR)\b/.test(title);
+    const autoEval = {
+      descriptivo: !hasQuestion,
+      compuesto: title.includes(':') || title.includes(' - '),
+      no_declarativo: !/demuestra|prueba|confirma|evidencia que|concluye/i.test(title),
+      no_interrogativo: !hasQuestion,
+      menciona_disenio: hasStudyType,
+      coherente: true,
+      sin_relleno: true,
+      chars_ok: chars <= 280,
+      palabras_ok: words >= 10 && words <= 15,
+      sin_basura: !hasTrashWords,
+      kw_inicio: true,
+      incluye_mesh: hasStudyType,
+      sin_abrev: !hasAbrev,
+      sin_marca: true,
+      comprensible: true,
+      no_clickbait: !hasExcl,
+      fiel_contenido: true,
+      sin_sesgo: true,
+      sin_numeros_resultado: !/\d+\s*%|\d+\s*(veces|puntos|mg|mmhg)/i.test(title)
+    };
+    applyAiResults(autoEval, {});
+    document.getElementById('aiVerdict').textContent = 'Análisis básico (sin IA)';
+  }
+
+  // Show results
+  const results = document.getElementById('results');
+  results.style.display = 'block';
+  setTimeout(() => results.classList.add('visible'), 50);
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  overlay.classList.remove('show');
+  btn.disabled = false;
+  document.getElementById('spinner').style.display = 'none';
+  document.getElementById('btnText').textContent = 'Volver a evaluar';
+}
+
+function clearAll() {
+  input.value = '';
+  charCount.textContent = '0 / 280';
+  charCount.className = 'char-count';
+  btn.disabled = true;
+  document.getElementById('btnText').textContent = 'Evaluar título';
+  const results = document.getElementById('results');
+  results.classList.remove('visible');
+  setTimeout(() => { results.style.display = 'none'; }, 400);
+  CRITERIA.forEach(s => s.items.forEach(it => {
+    state[it.id] = false;
+    const cb = document.getElementById('cb-' + it.id);
+    const row = document.getElementById('row-' + it.id);
+    const badge = document.getElementById('badge-auto-' + it.id);
+    const aiNote = document.getElementById('ai-note-' + it.id);
+    if (cb) { cb.className = 'cb'; }
+    if (row) { row.classList.remove('auto-checked', 'auto-failed'); }
+    if (badge) badge.style.display = 'none';
+    if (aiNote) { aiNote.textContent = ''; aiNote.classList.remove('show'); }
+  }));
+  document.getElementById('aiFeedbackBox').style.display = 'none';
+  document.getElementById('suggestionsBox').style.display = 'none';
+  input.focus();
+}
+
+// Init
+buildChecklist();
+updateScore();
+</script>
+</body>
+</html>
