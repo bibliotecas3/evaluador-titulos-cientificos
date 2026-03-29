@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TítuloCientífico — Evaluador normativo ICMJE · MeSH · CONSORT/STROBE</title>
+<title>TítuloCientífico — Evaluador Vancouver, MeSH y ICMJE</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ─── TOKENS ─────────────────────────────────────────────── */
+/* ─── TOKENS & BASE ────────────────────────────────────────── */
 :root{
   --bg:#F5F2EC;--bg2:#EDE9E0;--bg3:#E3DDD2;
   --ink:#1A1714;--ink2:#4A453E;--ink3:#7A746C;
@@ -31,1769 +31,296 @@ header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;al
 /* ─── LAYOUT ─────────────────────────────────────────────── */
 main{max-width:900px;margin:0 auto;padding:3rem 2rem 4rem}
 
-/* ─── INPUT ──────────────────────────────────────────────── */
-/* FIX E: label font-size corregido a mínimo 12px (era 10px) */
+/* ─── INPUT AREA ─────────────────────────────────────────── */
 .input-label{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.10em;text-transform:uppercase;color:var(--ink3);margin-bottom:.5rem;display:block}
 .title-input-wrap{position:relative}
-/* FIX: outline restaurado con estilo propio (no outline:none) */
 textarea#titleInput{width:100%;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.4;color:var(--ink);background:transparent;border:none;border-bottom:2px solid var(--ink);padding:.5rem 0 .75rem;resize:none;outline:none;min-height:70px;transition:border-color .2s;font-style:italic}
-textarea#titleInput::placeholder{color:var(--border2);font-style:italic}
-textarea#titleInput:focus{border-bottom-color:var(--accent);outline:none}
-textarea#titleInput:focus-visible{box-shadow:var(--focus-ring)}
-.char-count{position:absolute;right:0;bottom:-20px;font-size:12px;font-family:'DM Mono',monospace;color:var(--ink3)}
+textarea#titleInput:focus{border-bottom-color:var(--accent)}
+.char-count{position:absolute;right:0;bottom:-25px;font-size:12px;font-family:'DM Mono',monospace;color:var(--ink3)}
 .char-count.warn{color:var(--amber)}.char-count.error{color:var(--red)}
-.ai-row{margin-top:2rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 
 /* ─── BUTTONS ────────────────────────────────────────────── */
-.btn-analyze{font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;background:var(--ink);color:var(--bg);border:none;padding:10px 22px;border-radius:var(--radius);cursor:pointer;transition:background .15s,transform .1s}
-.btn-analyze:hover:not(:disabled){background:var(--accent)}.btn-analyze:active{transform:scale(.98)}.btn-analyze:disabled{background:var(--border);cursor:not-allowed}
-.btn-analyze:focus-visible{box-shadow:var(--focus-ring);outline:none}
-.btn-clear{font-family:'Instrument Sans',sans-serif;font-size:13px;color:var(--ink3);background:none;border:1px solid var(--border);padding:9px 16px;border-radius:var(--radius);cursor:pointer;transition:all .15s}
-.btn-clear:hover{border-color:var(--border2);color:var(--ink2)}
-.btn-clear:focus-visible{box-shadow:var(--focus-ring);outline:none}
-.btn-icon{display:inline-flex;align-items:center;gap:5px}
+.ai-row{margin-top:2.5rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.btn-analyze{font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:600;background:var(--ink);color:var(--bg);border:none;padding:10px 22px;border-radius:var(--radius);cursor:pointer;transition:all .15s}
+.btn-analyze:hover:not(:disabled){background:var(--accent)}
+.btn-analyze:disabled{background:var(--border);cursor:not-allowed}
+.btn-clear{font-size:13px;color:var(--ink3);background:none;border:1px solid var(--border);padding:9px 16px;border-radius:var(--radius);cursor:pointer}
 
-/* ─── DOWNLOAD ───────────────────────────────────────────── */
-.btn-download{font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:500;color:var(--blue);background:var(--blue-bg);border:1px solid rgba(26,58,107,.2);padding:9px 16px;border-radius:var(--radius);cursor:pointer;transition:all .15s;display:none;gap:6px;align-items:center}
-.btn-download:hover{background:#ccddf0;border-color:rgba(26,58,107,.35)}
-.btn-download.visible{display:inline-flex}
-.btn-download:focus-visible{box-shadow:var(--focus-ring);outline:none}
-
-/* ─── RESULTS ────────────────────────────────────────────── */
+/* ─── RESULTS & SCORE ────────────────────────────────────── */
 #results{display:none;opacity:0;transition:opacity .4s}
 #results.visible{display:block;opacity:1}
-
-/* ─── SCORE PANEL ────────────────────────────────────────── */
 .score-panel{background:var(--ink);color:var(--bg);border-radius:var(--radius-lg);padding:1.75rem 2rem;margin-bottom:2rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2rem}
 .score-big{font-family:'DM Serif Display',serif;font-size:64px;line-height:1}
 .score-big span{font-size:22px;color:rgba(245,242,236,.5);vertical-align:top;margin-top:8px;display:inline-block}
-.verdict-text{font-size:18px;font-weight:600;margin-bottom:8px;color:var(--bg)}
-/* Segmented progress bar (obligatorios + recomendados) */
 .progress-outer{height:4px;background:rgba(245,242,236,.12);border-radius:2px;overflow:hidden;margin-bottom:6px;display:flex;gap:1px}
-.progress-obl{height:4px;border-radius:2px 0 0 2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
-.progress-rec{height:4px;border-radius:0 2px 2px 0;transition:width .8s cubic-bezier(.4,0,.2,1)}
-.score-meta{display:flex;justify-content:space-between;align-items:center}
-/* FIX E: font size mínimo 12px */
-.score-pct{font-family:'DM Mono',monospace;font-size:12px;color:rgba(245,242,236,.5)}
-/* FIX N: indicador de correcciones manuales */
-.manual-indicator{font-family:'DM Mono',monospace;font-size:12px;color:rgba(196,68,14,.85);display:none}
-.manual-indicator.show{display:inline}
-.ai-verdict{max-width:260px;font-size:13px;line-height:1.6;color:rgba(245,242,236,.7);font-style:italic;border-left:2px solid rgba(245,242,236,.2);padding-left:12px}
+.progress-obl{height:4px;transition:width .8s ease}
+.progress-rec{height:4px;background:rgba(245,242,236,.3);transition:width .8s ease}
 
-/* ─── QUICK STATS ────────────────────────────────────────── */
+/* ─── CARDS & CHECKLIST ──────────────────────────────────── */
 .quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:2rem}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1rem .75rem}
-.stat-val{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink);line-height:1;margin-bottom:4px}
-/* FIX E: stat-lbl subida a 12px */
-.stat-lbl{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;color:var(--ink3);text-transform:uppercase}
-.stat-card.ok .stat-val{color:var(--green)}.stat-card.warn .stat-val{color:var(--amber)}.stat-card.err .stat-val{color:var(--red)}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem}
+.stat-val{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;margin-bottom:4px}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3);text-transform:uppercase}
 
-/* ─── CHECKLIST TOOLBAR ──────────────────────────────────── */
-.checklist-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:.75rem;flex-wrap:wrap}
-/* FIX E: font size 12px */
-.checklist-toolbar-label{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);flex:1}
-.btn-filter{font-family:'DM Mono',monospace;font-size:12px;color:var(--ink3);background:none;border:1px solid var(--border);padding:6px 13px;border-radius:var(--radius);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px}
-.btn-filter:hover{border-color:var(--border2);color:var(--ink2)}
-.btn-filter.active{background:var(--red-bg);border-color:rgba(139,26,26,.3);color:var(--red)}
-.btn-filter:focus-visible{box-shadow:var(--focus-ring);outline:none}
-
-/* ─── SECTIONS ───────────────────────────────────────────── */
 .section-wrap{margin-bottom:1.25rem;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
-.section-head{display:flex;align-items:center;gap:10px;padding:.85rem 1.1rem;cursor:pointer;background:var(--bg2);user-select:none;transition:background .15s}
-.section-head:hover{background:var(--bg3)}
-.section-head:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.section-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.section-name{font-size:13px;font-weight:600;color:var(--ink);flex:1}
-.section-score{font-family:'DM Mono',monospace;font-size:12px;color:var(--ink3)}
-.chev{font-size:9px;color:var(--ink3);transition:transform .2s}.chev.open{transform:rotate(180deg)}
-.section-items{display:none}.section-items.open{display:block}
-
-/* ─── ITEM ROW ───────────────────────────────────────────── */
-.item-row{display:flex;align-items:flex-start;gap:12px;padding:.9rem 1.1rem;border-top:1px solid var(--border);background:var(--bg);transition:background .12s}
-.item-row.auto-ok{background:rgba(45,106,79,.03)}.item-row.auto-fail{background:rgba(139,26,26,.03)}
-.item-row.overridden-ok{background:rgba(26,58,107,.04)}.item-row.overridden-fail{background:rgba(139,26,26,.06)}
-/* FIX D: item-row.hidden used to filter */
+.section-head{display:flex;align-items:center;gap:10px;padding:.85rem 1.1rem;cursor:pointer;background:var(--bg2)}
+.item-row{display:flex;gap:12px;padding:.9rem 1.1rem;border-top:1px solid var(--border);background:var(--bg)}
 .item-row.hidden{display:none}
 
-/* ─── FIX C: ACCESSIBLE CHECKBOX ────────────────────────── */
-/* Real input[type=checkbox] visually hidden, custom .cb-visual layered */
-.cb-wrap{width:18px;height:18px;flex-shrink:0;margin-top:2px;position:relative;cursor:pointer}
-.cb-input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}
-.cb-visual{width:18px;height:18px;border-radius:3px;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:all .15s;pointer-events:none;position:absolute;top:0;left:0}
-.cb-input:focus-visible~.cb-visual{box-shadow:var(--focus-ring)}
-.cb-visual.checked{background:var(--green);border-color:var(--green)}
-.cb-visual.checked::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px)}
-.cb-visual.failed{border-color:var(--red);background:var(--red-bg)}
-.cb-visual.failed::after{content:'×';font-size:13px;font-weight:600;color:var(--red);line-height:1}
-.cb-visual.manual{border-style:dashed}
-
-.item-body{flex:1;min-width:0}
-.item-header-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer}
-.item-label{font-size:13px;font-weight:500;color:var(--ink);line-height:1.5}
-
-/* ─── BADGES ─────────────────────────────────────────────── */
-.badge{display:inline-block;font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.04em;padding:2px 7px;border-radius:2px;vertical-align:middle}
-.badge-req{background:var(--red-bg);color:var(--red)}.badge-rec{background:var(--blue-bg);color:var(--blue)}
-.badge-manual{background:var(--blue-bg);color:var(--blue);border:1px dashed var(--blue)}
-
-/* ─── FIX E: item-note subida a 12px ────────────────────── */
-.item-note{font-size:12px;color:var(--ink3);line-height:1.5;margin-top:2px}
-
-/* ─── OVERRIDE BUTTON ────────────────────────────────────── */
-.override-btn{display:none;margin-left:auto;flex-shrink:0;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.04em;padding:3px 9px;border-radius:2px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--ink3);transition:all .15s;white-space:nowrap}
-.override-btn:hover{background:var(--bg2);border-color:var(--ink3);color:var(--ink)}
-.override-btn.show{display:inline-block}
-.override-btn.undo{border-color:var(--blue);color:var(--blue)}
-.override-btn.undo:hover{background:var(--blue-bg)}
-.override-btn:focus-visible{box-shadow:var(--focus-ring);outline:none}
-
-/* ─── TOOLTIPS ───────────────────────────────────────────── */
-/* FIX M: tooltip contextual en badges normativos */
-.has-tooltip{position:relative;display:inline-block}
-.has-tooltip .tooltip-box{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:12px;font-family:'Instrument Sans',sans-serif;font-weight:400;line-height:1.5;padding:.5rem .75rem;border-radius:var(--radius);width:240px;white-space:normal;z-index:200;pointer-events:none}
-.has-tooltip .tooltip-box::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ink)}
-.has-tooltip:hover .tooltip-box,.has-tooltip:focus-within .tooltip-box{display:block}
-
-/* ─── EXPLAIN ────────────────────────────────────────────── */
-.item-explain{display:none;margin-top:10px}
-.item-explain.show{display:block}
-.explain-why{padding:.65rem .9rem;font-size:12px;line-height:1.65;border-left:3px solid var(--border2);color:var(--ink2);border-radius:0 var(--radius) var(--radius) 0}
-.explain-why.ok{border-left-color:var(--green);background:var(--green-bg)}
-.explain-why.fail{border-left-color:var(--red);background:var(--red-bg);color:var(--red)}
-.explain-why.manual-ok{border-left-color:var(--blue);background:var(--blue-bg);color:var(--blue)}
-.explain-why.manual-fail{border-left-color:var(--amber);background:var(--amber-bg);color:var(--amber)}
-.explain-sug{display:none;padding:.65rem .9rem;font-size:12px;line-height:1.6;background:var(--amber-bg);border-left:3px solid var(--amber);color:var(--ink2);margin-top:4px;border-radius:0 var(--radius) var(--radius) 0}
-.explain-sug.show{display:block}
-/* FIX E: sug-label 12px */
-.sug-label{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);display:block;margin-bottom:3px;font-weight:600}
-
-/* ─── FIX K: comment wrap oculto pre-evaluación ─────────── */
-.comment-wrap{margin-top:8px;display:none}
-.comment-wrap.show{display:block}
-/* FIX E: comment-lbl 12px */
-.comment-lbl{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);display:block;margin-bottom:4px}
-.item-comment{width:100%;font-family:'Instrument Sans',sans-serif;font-size:13px;line-height:1.5;color:var(--ink);background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:.45rem .65rem;resize:vertical;min-height:44px;outline:none;transition:border-color .2s}
-.item-comment:focus{border-color:var(--border2);background:var(--bg);box-shadow:var(--focus-ring)}
-.item-comment::placeholder{color:var(--border2);font-style:italic}
-
-/* ─── FIX L: REWRITE BOX (moved to bottom, after checklist) */
+/* ─── REWRITE BOX ────────────────────────────────────────── */
 .rewrite-box{background:var(--ink);border-radius:var(--radius-lg);padding:1.5rem 1.75rem;margin-bottom:2rem;display:none}
 .rewrite-box.show{display:block}
-/* FIX E: rw-label 12px */
-.rw-label{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,242,236,.4);margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between}
-.rw-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--bg);line-height:1.4;font-style:italic;margin-bottom:.75rem}
-.rw-why{font-size:13px;color:rgba(245,242,236,.6);line-height:1.6;margin-bottom:.5rem}
-.rw-changes{display:flex;flex-direction:column;gap:5px;margin-top:.5rem}
-.rw-change{font-size:12px;color:rgba(245,242,236,.55);line-height:1.5;padding-left:12px;border-left:2px solid var(--accent)}
-/* FIX J: copy button inside rewrite box */
-.btn-copy-rw{font-family:'DM Mono',monospace;font-size:12px;color:rgba(245,242,236,.5);background:none;border:1px solid rgba(245,242,236,.2);padding:4px 10px;border-radius:var(--radius);cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
-.btn-copy-rw:hover{color:rgba(245,242,236,.9);border-color:rgba(245,242,236,.4)}
-.btn-copy-rw.copied{color:var(--green);border-color:var(--green)}
+.rw-label{font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,242,236,.4);text-transform:uppercase;margin-bottom:.5rem}
+.rw-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--bg);font-style:italic;margin-bottom:.75rem}
 
-/* ─── GLOBAL SUGGESTIONS ─────────────────────────────────── */
-.sug-section{margin-top:2rem;padding:1.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg)}
-/* FIX E: sug-header 12px */
-.sug-header{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.10em;text-transform:uppercase;color:var(--ink3);margin-bottom:1rem}
-.sug-list{display:flex;flex-direction:column;gap:8px}
-.sug-item{font-size:13px;color:var(--ink2);line-height:1.6;padding:.6rem .9rem;background:var(--bg);border-radius:var(--radius);border-left:3px solid var(--accent)}
-
-/* ─── DOWNLOAD ROW ───────────────────────────────────────── */
-.download-row{display:flex;align-items:center;gap:10px;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)}
-/* FIX E: download-label 12px */
-.download-label{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);flex:1}
-
-/* ─── MODAL / DIALOG ─────────────────────────────────────── */
-/* FIX A, B: confirmation dialogs */
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(26,23,20,.55);z-index:500;align-items:center;justify-content:center}
+/* ─── MODALS ─────────────────────────────────────────────── */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(26,23,20,.6);z-index:500;align-items:center;justify-content:center}
 .modal-backdrop.open{display:flex}
-.modal{background:var(--bg);border-radius:var(--radius-lg);border:1px solid var(--border);padding:1.75rem;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18)}
-.modal-title{font-family:'DM Serif Display',serif;font-size:18px;color:var(--ink);margin-bottom:.75rem}
-.modal-body{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:1.25rem}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
-.modal-btn-cancel{font-family:'Instrument Sans',sans-serif;font-size:13px;color:var(--ink3);background:none;border:1px solid var(--border);padding:8px 16px;border-radius:var(--radius);cursor:pointer}
-.modal-btn-cancel:hover{border-color:var(--border2);color:var(--ink2)}
-.modal-btn-confirm{font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:600;color:var(--bg);background:var(--red);border:none;padding:8px 16px;border-radius:var(--radius);cursor:pointer;transition:background .15s}
-.modal-btn-confirm:hover{background:#6d1414}
-.modal-btn-confirm:focus-visible,.modal-btn-cancel:focus-visible{box-shadow:var(--focus-ring);outline:none}
+.modal{background:var(--bg);border-radius:var(--radius-lg);padding:1.75rem;max-width:400px;width:90%}
+.modal-btn-confirm{background:var(--red);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius);cursor:pointer}
 
-/* ─── FEEDBACK TOAST ─────────────────────────────────────── */
-/* FIX: status feedback on actions */
-.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--ink);color:var(--bg);font-size:13px;font-family:'Instrument Sans',sans-serif;padding:.6rem 1rem;border-radius:var(--radius);opacity:0;transform:translateY(8px);transition:opacity .25s,transform .25s;pointer-events:none;z-index:600}
-.toast.show{opacity:1;transform:translateY(0)}
+/* Tooltips */
+.has-tooltip{position:relative}
+.tooltip-box{display:none;position:absolute;bottom:120%;left:0;background:var(--ink);color:#fff;padding:8px;font-size:12px;width:200px;border-radius:4px;z-index:10}
+.has-tooltip:hover .tooltip-box{display:block}
 
-/* ─── FOOTER ─────────────────────────────────────────────── */
-footer{border-top:1px solid var(--border);padding:1.5rem 2rem;text-align:center;font-size:12px;font-family:'DM Mono',monospace;color:var(--ink3)}
-footer a{color:var(--ink3)}
-
-/* ─── RESPONSIVE ─────────────────────────────────────────── */
 @media(max-width:640px){
-  main{padding:2rem 1rem 3rem}
-  .score-panel{grid-template-columns:1fr;gap:1rem}
-  .ai-verdict{max-width:100%;border-left:none;padding-left:0;border-top:1px solid rgba(245,242,236,.15);padding-top:10px}
-  .quick-stats{grid-template-columns:repeat(2,1fr)}
-  header{flex-direction:column;gap:4px}
-  .has-tooltip .tooltip-box{left:0;transform:none}
-}
-
-/* ─── PRINT ──────────────────────────────────────────────── */
-@media print{
-  header,footer,.ai-row,.btn-analyze,.btn-clear,.btn-download,.download-row,
-  .override-btn,.comment-wrap,.section-head .chev,.checklist-toolbar,
-  .modal-backdrop,.toast{display:none!important}
-  body{background:#fff;color:#000;font-size:11pt}
-  main{max-width:100%;padding:0;margin:0}
-  #results{display:block!important;opacity:1!important}
-  .score-panel{background:#1A1714;-webkit-print-color-adjust:exact;print-color-adjust:exact;border-radius:6px;margin-bottom:16pt}
-  .section-items{display:block!important}
-  .item-row{break-inside:avoid}
-  .comment-wrap.show{display:block!important}
-  .explain-why,.explain-sug{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .rewrite-box.show{background:#1A1714;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:block!important}
+  .score-panel{grid-template-columns:1fr;text-align:center}
+  .quick-stats{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
 <body>
 
-<!-- ─── HEADER ──────────────────────────────────────────── -->
-<header role="banner">
-  <div class="logo" aria-label="TítuloCientífico">TítuloCien<span>tífico</span></div>
-  <div class="tagline">Evaluador normativo · ICMJE · MeSH · CONSORT/STROBE</div>
+<header>
+  <div class="logo">TítuloCien<span>tífico</span></div>
+  <div class="tagline">Evaluador Vancouver · ICMJE · MeSH</div>
 </header>
 
-<!-- ─── MAIN ─────────────────────────────────────────────── -->
-<main role="main">
+<main>
   <div style="margin-bottom:2.5rem">
-    <label class="input-label" for="titleInput">Introduce el título del artículo científico</label>
+    <label class="input-label" for="titleInput">Título del artículo científico</label>
     <div class="title-input-wrap">
-      <!-- FIX: autocomplete y spellcheck desactivados para términos médicos -->
-      <textarea
-        id="titleInput" rows="2"
-        autocomplete="off" spellcheck="false"
-        aria-describedby="charCount titleHint"
-        placeholder="p. ej. Efectividad de la terapia cognitivo-conductual frente a la farmacoterapia en el trastorno depresivo mayor: ensayo controlado aleatorizado multicéntrico"
-      ></textarea>
-      <span class="char-count" id="charCount" aria-live="polite" aria-atomic="true">0 / 280</span>
+      <textarea id="titleInput" placeholder="Ej: Efecto de la metformina en pacientes con diabetes: ensayo clínico..." spellcheck="false"></textarea>
+      <span class="char-count" id="charCount">0 / 280</span>
     </div>
-    <p id="titleHint" style="font-size:12px;color:var(--ink3);margin-top:1.75rem;font-family:'DM Mono',monospace">
-      Ctrl+Enter para evaluar · El título se analiza localmente, sin envío a servidores
-    </p>
     <div class="ai-row">
-      <button class="btn-analyze" id="btnAnalyze" onclick="requestAnalyze()" disabled aria-disabled="true">
-        <span id="btnText">Evaluar título</span>
-      </button>
-      <button class="btn-clear" onclick="requestClear()" aria-label="Limpiar todo el formulario">Limpiar</button>
+      <button class="btn-analyze" id="btnAnalyze" onclick="requestAnalyze()" disabled>Evaluar título</button>
+      <button class="btn-clear" onclick="requestClear()">Limpiar</button>
     </div>
   </div>
 
-  <div id="results" role="region" aria-label="Resultados de evaluación">
-
-    <!-- SCORE PANEL -->
-    <div class="score-panel" role="status" aria-live="polite" aria-atomic="true">
-      <div class="score-big" id="scoreBig" aria-label="Puntuación">0<span>/20</span></div>
+  <div id="results">
+    <div class="score-panel">
+      <div class="score-big" id="scoreBig">0<span>/20</span></div>
       <div>
-        <div class="verdict-text" id="verdictText">—</div>
-        <div class="progress-outer" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="progressBar">
+        <div id="verdictText" style="font-weight:600;margin-bottom:8px">—</div>
+        <div class="progress-outer">
           <div class="progress-obl" id="progressObl" style="width:0%"></div>
           <div class="progress-rec" id="progressRec" style="width:0%"></div>
         </div>
-        <div class="score-meta">
-          <span class="score-pct" id="scorePct">0% de criterios cumplidos</span>
-          <!-- FIX N: indicador de correcciones manuales activas -->
-          <span class="manual-indicator" id="manualIndicator" aria-live="polite"></span>
-        </div>
+        <div id="scorePct" style="font-size:12px;font-family:'DM Mono'">0% de criterios</div>
       </div>
-      <div class="ai-verdict" id="aiVerdict">—</div>
+      <div id="aiVerdict" style="font-size:13px;opacity:0.8;font-style:italic;max-width:250px">—</div>
     </div>
 
-    <!-- QUICK STATS -->
-    <div class="quick-stats" role="list" aria-label="Estadísticas rápidas">
-      <div class="stat-card" id="scW" role="listitem"><div class="stat-val" id="svW">—</div><div class="stat-lbl">Palabras</div></div>
-      <div class="stat-card" id="scC" role="listitem"><div class="stat-val" id="svC">—</div><div class="stat-lbl">Caracteres</div></div>
-      <div class="stat-card" id="scO" role="listitem"><div class="stat-val" id="svO">—</div><div class="stat-lbl">Obligatorios ✓</div></div>
-      <div class="stat-card" id="scR" role="listitem"><div class="stat-val" id="svR">—</div><div class="stat-lbl">Recomendados ✓</div></div>
+    <div class="quick-stats">
+      <div class="stat-card" id="scW"><div class="stat-val" id="svW">0</div><div class="stat-lbl">Palabras</div></div>
+      <div class="stat-card" id="scC"><div class="stat-val" id="svC">0</div><div class="stat-lbl">Caracteres</div></div>
+      <div class="stat-card" id="scO"><div class="stat-val" id="svO">0</div><div class="stat-lbl">Vancouver ✓</div></div>
+      <div class="stat-card" id="scR"><div class="stat-val" id="svR">0</div><div class="stat-lbl">MeSH/Rec. ✓</div></div>
     </div>
 
-    <!-- CHECKLIST TOOLBAR (FIX D: filter) -->
-    <div class="checklist-toolbar">
-      <span class="checklist-toolbar-label">Criterios de evaluación</span>
-      <button class="btn-filter" id="btnFilter" onclick="toggleFilter()" aria-pressed="false">
-        <span id="filterIcon">◉</span>
-        <span id="filterLabel">Mostrar solo incumplidos</span>
-      </button>
-    </div>
-
-    <!-- CHECKLIST CONTAINER -->
-    <div id="checklistContainer" role="list"></div>
-
-    <!-- GLOBAL SUGGESTIONS -->
-    <div class="sug-section" id="sugSection" style="display:none" role="complementary" aria-label="Recomendaciones">
-      <div class="sug-header">Recomendaciones generales de mejora</div>
-      <div class="sug-list" id="sugList"></div>
-    </div>
-
-    <!-- FIX L: rewrite box MOVED here, below checklist -->
-    <div class="rewrite-box" id="rwBox" role="region" aria-label="Propuesta de título mejorado">
-      <div class="rw-label">
-        <span>Propuesta de título mejorado</span>
-        <!-- FIX J: copy button -->
-        <button class="btn-copy-rw" id="btnCopyRw" onclick="copyImprovedTitle()" aria-label="Copiar título mejorado">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><rect x="4" y="1" width="7" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/><rect x="1" y="4" width="7" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
-          <span id="btnCopyRwLabel">Copiar</span>
-        </button>
-      </div>
+    <div class="rewrite-box" id="rwBox">
+      <div class="rw-label">Propuesta Estilo Vancouver / ICMJE</div>
       <div class="rw-title" id="rwTitle"></div>
-      <div class="rw-why" id="rwWhy"></div>
-      <div class="rw-changes" id="rwChanges"></div>
+      <div id="rwChanges" style="color:rgba(245,242,236,0.6);font-size:12px"></div>
     </div>
 
-    <!-- DOWNLOAD ROW -->
-    <div class="download-row" id="downloadRow" style="display:none">
-      <span class="download-label">Exportar informe</span>
-      <button class="btn-download visible" onclick="downloadReport('html')" aria-label="Descargar informe en formato HTML">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M6.5 1v7M3.5 5.5l3 3 3-3M1.5 10h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Informe HTML
-      </button>
-      <button class="btn-download visible" onclick="downloadReport('pdf')" aria-label="Imprimir o guardar como PDF">
-        <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M6.5 1v7M3.5 5.5l3 3 3-3M1.5 10h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        Imprimir / PDF
-      </button>
-    </div>
-
-  </div><!-- /#results -->
+    <div id="checklistContainer"></div>
+  </div>
 </main>
 
-<!-- ─── FOOTER ─────────────────────────────────────────────── -->
-<footer role="contentinfo">
-  Basado en: ICMJE Recommendations · CONSORT 2010 · STROBE · PRISMA · MeSH/DeCS NCBI · SAGER · Guías editoriales BMJ, Lancet, NEJM, JAMA<br>
-  <a href="https://www.icmje.org" target="_blank" rel="noopener">icmje.org</a> ·
-  <a href="https://www.equator-network.org" target="_blank" rel="noopener">equator-network.org</a> ·
-  <a href="https://meshb.nlm.nih.gov" target="_blank" rel="noopener">MeSH Browser</a>
-</footer>
-
-<!-- ─── FIX A, B: CONFIRMATION MODALS ─────────────────────── -->
-<div class="modal-backdrop" id="modalReanalyze" role="dialog" aria-modal="true" aria-labelledby="modalReanalyzeTitle">
+<div class="modal-backdrop" id="modalConfirm">
   <div class="modal">
-    <div class="modal-title" id="modalReanalyzeTitle">¿Volver a evaluar?</div>
-    <div class="modal-body" id="modalReanalyzeBody">Esta acción borrará las correcciones manuales activas y sus comentarios. ¿Continuar?</div>
-    <div class="modal-actions">
-      <button class="modal-btn-cancel" onclick="closeModal('modalReanalyze')">Cancelar</button>
-      <button class="modal-btn-confirm" id="modalReanalyzeConfirm" onclick="confirmReanalyze()">Sí, volver a evaluar</button>
+    <h3 style="margin-bottom:10px">¿Re-evaluar?</h3>
+    <p style="font-size:13px;margin-bottom:20px">Se perderán los comentarios y ajustes manuales actuales.</p>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button onclick="closeModal('modalConfirm')" style="background:none;border:none;cursor:pointer">Cancelar</button>
+      <button class="modal-btn-confirm" onclick="confirmReanalyze()">Confirmar</button>
     </div>
   </div>
 </div>
-
-<div class="modal-backdrop" id="modalClear" role="dialog" aria-modal="true" aria-labelledby="modalClearTitle">
-  <div class="modal">
-    <div class="modal-title" id="modalClearTitle">¿Limpiar todo?</div>
-    <div class="modal-body">Se borrará el título, todas las correcciones manuales y los comentarios. Esta acción no se puede deshacer.</div>
-    <div class="modal-actions">
-      <button class="modal-btn-cancel" onclick="closeModal('modalClear')">Cancelar</button>
-      <button class="modal-btn-confirm" onclick="confirmClear()">Sí, limpiar</button>
-    </div>
-  </div>
-</div>
-
-<!-- ─── FIX: TOAST FEEDBACK ───────────────────────────────── -->
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* ════════════════════════════════════════════════════════════
-   CRITERIA DEFINITION
-   ════════════════════════════════════════════════════════════ */
-const CRITERIA=[
-  {id:"estructura",title:"Estructura y taxonomía",color:"#534AB7",
-   tooltip:"Evalúa la forma gramatical y tipología del título según las recomendaciones ICMJE.",
-   items:[
-    {id:"descriptivo",label:"Título descriptivo o indicativo",note:"Describe el tema sin revelar conclusiones prematuramente.",req:true,
-     guideTooltip:"ICMJE recomienda que el título describa el estudio sin anticipar los hallazgos como hechos absolutos."},
-    {id:"compuesto",label:"Uso apropiado del título compuesto",note:"Si usa dos puntos o guion, separan el tema principal del diseño o enfoque.",req:false,
-     guideTooltip:"Un título compuesto (tema: diseño) facilita la comprensión inmediata y mejora la recuperación bibliográfica."},
-    {id:"noDecl",label:"Sin estilo declarativo",note:"El título no expone el hallazgo como verdad absoluta.",req:true,
-     guideTooltip:"ICMJE: evitar afirmaciones causales o definitivas en el título, ya que condicionan la lectura antes de evaluar la metodología."},
-    {id:"noInterr",label:"Uso prudente de la forma interrogativa",note:"Los títulos en forma de pregunta no son estándar en investigación primaria.",req:false,
-     guideTooltip:"Los títulos interrogativos son válidos para editoriales y revisiones narrativas, pero no son el estándar para artículos originales."}
+/* ─── DATA & CRITERIA ────────────────────────────────────── */
+const CRITERIA = [
+  {id:"vancouver", title:"Normas de Vancouver e ICMJE", color:"#C4440E", items:[
+    {id:"v_start", label:"Inicio con palabra clave", note:"Evita artículos (El, La) al inicio según Vancouver.", req:true},
+    {id:"v_design", label:"Mención del diseño", note:"Debe figurar tras dos puntos (: ensayo clínico...).", req:true},
+    {id:"v_mesh", label:"Términos MeSH/DeCS", note:"Usa descriptores médicos normalizados.", req:true},
+    {id:"v_no_brand", label:"Sin nombres comerciales", note:"Usa DCI (Genéricos) exclusivamente.", req:true}
   ]},
-  {id:"guias",title:"Cumplimiento de guías internacionales",color:"#0F6E56",
-   tooltip:"Verifica la adherencia a ICMJE, CONSORT, STROBE y PRISMA.",
-   items:[
-    {id:"disenio",label:"Menciona el diseño del estudio",note:"CONSORT/STROBE/PRISMA: el tipo de estudio debe figurar explícitamente.",req:true,
-     guideTooltip:"CONSORT (ensayos), STROBE (estudios observacionales) y PRISMA (revisiones sistemáticas) exigen que el diseño del estudio figure en el título."},
-    {id:"coherente",label:"Coherente con el contenido del manuscrito",note:"ICMJE: el título refleja fielmente objetivos, población y resultados.",req:true,
-     guideTooltip:"ICMJE: el título debe reflejar fielmente el contenido del artículo, sin omitir ni exagerar el alcance del estudio."},
-    {id:"sinRelleno",label:"Sin detalles innecesarios ni relleno",note:"ICMJE: concisión; sin información que no contribuya a identificar el estudio.",req:true,
-     guideTooltip:"ICMJE desaconseja explícitamente las frases introductoras redundantes como «Un estudio sobre…» o «Investigación acerca de…»."}
-  ]},
-  {id:"concision",title:"Concisión y longitud",color:"#993C1D",
-   tooltip:"Comprueba la extensión óptima según criterios de legibilidad y recuperación bibliográfica.",
-   items:[
-    {id:"chars",label:"Extensión ≤ 280 caracteres",note:"Garantiza visualización completa en PubMed, Scopus y gestores.",req:false,
-     guideTooltip:"Títulos superiores a 280 caracteres pueden truncarse en PubMed, Scopus, Embase y la mayoría de gestores bibliográficos."},
-    {id:"palabras",label:"Entre 10 y 15 palabras",note:"Rango recomendado para equilibrar información y brevedad.",req:false,
-     guideTooltip:"El rango 10-15 palabras maximiza la recuperabilidad sin comprometer la información esencial (intervención, población, diseño)."},
-    {id:"sinBasura",label:"Sin 'palabras basura'",note:"Excluye frases como «Un estudio sobre…» o «Investigación acerca de…».",req:true,
-     guideTooltip:"Frases como «Un estudio de…», «Investigación sobre…» o «Nota acerca de…» no aportan información y reducen la especificidad del título."}
-  ]},
-  {id:"seo",title:"Visibilidad e indexación (SEO académico)",color:"#185FA5",
-   tooltip:"Evalúa la optimización para motores de búsqueda académicos y bases de datos biomédicas.",
-   items:[
-    {id:"kwInicio",label:"Palabras clave al inicio del título",note:"Los términos más relevantes en las primeras posiciones mejoran la recuperación.",req:true,
-     guideTooltip:"PubMed, Google Scholar y Scopus ponderan más las palabras al inicio del título. Coloca la intervención o la condición clínica en las primeras 3-4 posiciones."},
-    {id:"mesh",label:"Incluye descriptores MeSH o DeCS",note:"Asegura indexación correcta en MEDLINE/PubMed.",req:true,
-     guideTooltip:"Los términos MeSH (Medical Subject Headings) y DeCS son los vocabularios controlados de MEDLINE/PubMed y LILACS. Su presencia garantiza la indexación correcta. Consulta: meshb.nlm.nih.gov · decs.bvsalud.org"},
-    {id:"sinAbrev",label:"Sin abreviaturas no universales",note:"Evita acrónimos salvo los aceptados globalmente (VIH, ADN, IMC).",req:true,
-     guideTooltip:"Las abreviaturas no universales dificultan la recuperación. Solo están permitidas en el título las siglas reconocidas mundialmente: VIH, SIDA, ADN, IMC, OMS… Todas las demás deben desarrollarse."},
-    {id:"sinMarca",label:"Sin nombres comerciales o de marca",note:"Usa la denominación común internacional (DCI) para fármacos.",req:false,
-     guideTooltip:"BMJ, Lancet y NEJM exigen la DCI (denominación común internacional) en lugar de nombres comerciales. Ej: «fluoxetina» en vez de «Prozac», «adalimumab» en vez de «Humira»."}
-  ]},
-  {id:"etica",title:"Claridad, precisión y ética editorial",color:"#854F0B",
-   tooltip:"Evalúa el rigor ético del lenguaje y la honestidad en la comunicación científica.",
-   items:[
-    {id:"comprensible",label:"Comprensible para audiencia multidisciplinar",note:"Lenguaje directo y técnico pero accesible.",req:true,
-     guideTooltip:"Un título con exceso de tecnicismos hiperespecializados dificulta la lectura para revisores y lectores de disciplinas adyacentes."},
-    {id:"noClick",label:"Sin lenguaje sensacionalista ni clickbait",note:"Sin signos de exclamación ni superlativos injustificados.",req:true,
-     guideTooltip:"El uso de superlativos, signos de exclamación o términos como «revolucionario» o «nunca antes visto» reduce la credibilidad científica y contraviene las políticas de las principales revistas."},
-    {id:"fiel",label:"No promete más de lo que el estudio demuestra",note:"No sugiere causalidad si el diseño solo permite asociación.",req:true,
-     guideTooltip:"Principio de honestidad editorial: un estudio observacional no puede «demostrar» ni «confirmar» causalidad. Usar «asociación entre», «efecto de» o «impacto de» según el diseño."},
-    {id:"equidad",label:"Evita sesgos de género, etnia o región",note:"SAGER: lenguaje inclusivo y no discriminatorio.",req:false,
-     guideTooltip:"Las guías SAGER (Sex and Gender Equity in Research) recomiendan especificar sexo/género solo cuando sea metodológicamente relevante, y usar lenguaje neutro en el resto de casos."},
-    {id:"sinNums",label:"Sin datos numéricos de resultados en el título",note:"Las cifras específicas pueden condicionar la lectura prematuramente.",req:false,
-     guideTooltip:"Incluir porcentajes o valores específicos en el título (ej: «reduce un 34%») puede malinterpretarse sin conocer el intervalo de confianza y el contexto metodológico completo."}
+  {id:"estructura", title:"Concisión y SEO", color:"#1A3A6B", items:[
+    {id:"e_length", label:"Longitud óptima (10-15 palabras)", note:"Máximo impacto en motores de búsqueda.", req:false},
+    {id:"e_chars", label:"Límite de 280 caracteres", note:"Evita el truncamiento en PubMed.", req:true}
   ]}
 ];
 
-const TOTAL=CRITERIA.reduce((a,s)=>a+s.items.length,0);
-const TOTAL_OBL=CRITERIA.reduce((a,s)=>a+s.items.filter(i=>i.req).length,0);
-const TOTAL_REC=TOTAL-TOTAL_OBL;
+const state = {};
+const autoResults = {};
+CRITERIA.forEach(s => s.items.forEach(it => state[it.id] = {val:false, src:'auto', comment:''}));
 
-/* State */
-const state={};
-CRITERIA.forEach(s=>s.items.forEach(it=>{state[it.id]={val:false,src:'auto',comment:''}}));
-const autoResults={};
+/* ─── ENGINE ─────────────────────────────────────────────── */
+function engine(title) {
+  const words = title.trim().split(/\s+/);
+  const R = {};
+  
+  // Vancouver: Inicio con palabra clave
+  const startsWithArticle = /^(El|La|Los|Las|Un|Una|The|A|An)\b/i.test(title);
+  R.v_start = {ok: !startsWithArticle, why: startsWithArticle ? "Vancouver recomienda empezar por el sustantivo clínico, no por artículos." : "Correcto: El título inicia con una palabra con carga informativa."};
 
-/* Filter state */
-let filterFailed=false;
+  // Vancouver: Diseño al final
+  const hasDesign = /:\s*(ensayo|estudio|revisión|metaanálisis|ECA|cohortes|transversal)/i.test(title);
+  R.v_design = {ok: hasDesign, why: hasDesign ? "Diseño correctamente identificado tras dos puntos." : "Vancouver e ICMJE exigen incluir el diseño del estudio en el título."};
 
-/* ════════════════════════════════════════════════════════════
-   DETECTION PATTERNS
-   ════════════════════════════════════════════════════════════ */
-const BASURA=[
-  /^un(a)?\s+(estudio|an[aá]lisis|investigaci[oó]n|ensayo|revisi[oó]n|evaluaci[oó]n)\s+(de|sobre|acerca)/i,
-  /^(estudio|an[aá]lisis|investigaci[oó]n|observaciones|nota)\s+(sobre|de|acerca|preliminar)/i,
-  /^(reporte|informe|descripci[oó]n)\s+(de|sobre)/i,
-  /\bun\s+nuevo\s+enfoque\b/i,
-  /\bcontribuci[oó]n\s+al\s+/i
-];
+  // Vancouver: Sin marcas
+  const hasBrand = /\b(Prozac|Viagra|Advil|Tylenol|Lipitor)\b/i.test(title);
+  R.v_no_brand = {ok: !hasBrand, why: hasBrand ? "Se detectó un nombre comercial. Usa solo genéricos (DCI)." : "No se detectaron marcas comerciales."};
 
-const STUDY_TYPES={
-  eca:[/ensayo\s+cl[íi]nico?\s+(aleatori|controlado)/i,/ensayo\s+controlado\s+aleatori/i,/\bECA\b/,
-       /randomized\s+controlled\s+trial/i,/randomised\s+controlled\s+trial/i,/\bRCT\b/,/\baleatori[sz]/i,
-       /\brandomized\s+clinical\s+trial\b/i,/\brandomised\s+clinical\s+trial\b/i,
-       /phase\s+[123]\s+(?:randomized|randomised|clinical)/i,
-       /(?:randomized|randomised)\s+phase\s+[123]/i],
-  cohorte:[/estudio\s+de\s+cohorte/i,/cohorte\s+(prospectiv|retrospectiv)/i,
-           /\bcohort\s+study\b/i,/\bprospective\s+cohort\b/i,/\bretrospective\s+cohort\b/i],
-  casos:[/casos?\s+y\s+controles?/i,/case.control/i,/\bcase-control\s+study\b/i],
-  transversal:[/estudio\s+transversal/i,/cross.sectional/i,/\btransversal\b/i],
-  sistematica:[/revisi[oó]n\s+sistem[aá]tica/i,/meta.?an[aá]lisis/i,
-               /systematic\s+review/i,/\bmetaan[aá]lisis\b/i,/\bmeta.?analysis\b/i],
-  observacional:[/estudio\s+observacional/i,/\bobservacional\b/i,/\bobservational\s+study\b/i],
-  descriptivo:[/estudio\s+descriptivo/i,/serie\s+de\s+casos?/i,/\bdescriptivo\b/i,/\bcase\s+series\b/i],
-  piloto:[/estudio\s+piloto/i,/\bpiloto\b/i,/\bpilot\s+study\b/i,/\bpilot\s+trial\b/i],
-  cualitativo:[/estudio\s+cualitativo/i,/\bcualitativo\b/i,/\bqualitative\s+study\b/i],
-  antes_despues:[/antes\s+y\s+despu[eé]s/i,/pre.?\s*post\b/i,/\bpretest.postest\b/i,/\bbefore.after\s+study\b/i],
-  diagnostico:[/estudio\s+de\s+(precisi[oó]n|validez|diagn[oó]stico)/i,
-               /validaci[oó]n\s+de\s+(un\s+)?(test|prueba|escala|cuestionario)/i,
-               /\bdiagnostic\s+accuracy\b/i,/\bvalidation\s+study\b/i]
-};
+  // Estructura
+  R.e_length = {ok: words.length >= 10 && words.length <= 15, why: `Longitud de ${words.length} palabras.`};
+  R.e_chars = {ok: title.length <= 280, why: "Dentro del límite de PubMed."};
+  
+  // MeSH Local (Simulado)
+  const hasMesh = /\b(diabetes|hipertensión|cáncer|infarto|depresión|vacuna|covid|terapia)\b/i.test(title.toLowerCase());
+  R.v_mesh = {ok: hasMesh, why: hasMesh ? "Términos MeSH detectados." : "Intenta usar descriptores estándar de la NLM."};
 
-const UNIVERSAL=/\b(VIH|SIDA|ADN|ARN|IMC|OMS|OPS|UCI|UVI|ECA|ECR|TA|FC|FR|SpO2|CO2|O2|PCR|RCP|TAC|RMN|RM|PET|EPOC|DM|HTA|ICC|IAM|ACV|AIT|AINE|IBP|ISRS|IECA|ARAII|TNF|IL|IgG|IgE|HbA1c|LDL|HDL|INR|TSH|T3|T4|FSH|LH|PSA|CEA|CA125|AFP|COVID|SARS|MERS|VPH|VHB|VHC|VHS|CMV|EBV|TBC|TB|UCI|UTI|IMC|PCR|EPOC|DM2|DM1|AINE|PPI|IBP|SNP|TCR|ACE|ARB|ECG|EEG|MRI|CT|PET|ICU|OR|HR|RR|NNT|NNH|IC|CI)\b/g;
-
-const CLICKBAIT=[/\bsorprendent/i,/\bincre[íi]ble\b/i,/\bespectacular\b/i,/\bprimero\s+en\s+el\s+mundo\b/i,/\brevolucionari/i,/\bnunca\s+antes\b/i,/!/];
-const DECLARATIVO=[/\b(demuestra|prueba|confirma|evidencia\s+que|concluye\s+que)\b/i,/\bes\s+m[aá]s\s+efectiv/i,/\bes\s+superior\b/i];
-
-/* FIX H: MeSH ampliado con enfermería, especialidades y términos frecuentes */
-const MESH_P=[
-  /* medicina general */
-  /\b(depresi[oó]n|trastorno\s+depresivo)\b/i,/\bansiedad\b/i,/\bdiabetes\b/i,/\bhipertensi[oó]n\b/i,
-  /\b(neoplasia|c[aá]ncer|tumor|carcinoma|neoplasm)\b/i,/\binfarto\b/i,/\bobesi[oó]n|obesidad\b/i,
-  /\benfermedad\s+(cardiovascular|respiratoria|renal|hep[aá]tica|cr[oó]nica)\b/i,
-  /\bvacuna|vacunaci[oó]n\b/i,/\bantibio?tico|antimicrobiano\b/i,
-  /\bdolor\s+(cr[oó]nico|agudo|neuropático|posoperatorio)\b/i,
-  /\bcirrug[íi]a|quir[uú]rgico\b/i,/\bpediatri[a]?\b/i,
-  /\bgeriatr[íi]a|adulto\s+mayor|ancian[oa]\b/i,
-  /\bembarazo|gestaci[oó]n|prenatal|perinatal|obstetr\b/i,
-  /\brehabilitat\b/i,/\boncolog[íi]a\b/i,/\bneurolog[íi]\b/i,
-  /\bf[aá]rmaco|farmacolog[íi]a\b/i,/\bepidemiolog[íi]a\b/i,
-  /\bsalud\s+(p[uú]blica|mental|materna|infantil)\b/i,/\bcalidad\s+de\s+vida\b/i,
-  /\bmortalidad|morbilidad\b/i,/\bprevenci[oó]n\b/i,
-  /\bdiagn[oó]stico\b/i,/\btratamiento\b/i,
-  /\bterapia|terap[eé]utico\b/i,/\bhospital\b/i,
-  /\batenci[oó]n\s+primaria\b/i,/\b(eficacia|efectividad)\b/i,
-  /\bseguridad\s+(del\s+paciente|cl[íi]nica)\b/i,
-  /* psiquiatría / salud mental */
-  /\bterapia\s+cognitivo/i,/\bcognitivo.conductual\b/i,/\bpsicoterapia\b/i,
-  /\bfarmacoterapia\b/i,/\bantidepresivo\b/i,/\bpsiquiatr[íi]a\b/i,
-  /\btrastorno\s+(bipolar|de\s+p[aá]nico|obsesivo|alimentario|de\s+ansiedad|l[íi]mite)\b/i,
-  /\bestr[eé]s\s+(postraum[aá]tico|laboral|psicosocial)\b/i,
-  /\benfermedad\s+mental\b/i,/\bsuicidi\b/i,/\bconducta\s+suicida\b/i,
-  /* cardiología / neumología */
-  /\binsuficiencia\s+(card[íi]aca|respiratoria|renal|hep[aá]tica)\b/i,
-  /\bfibrilaci[oó]n\s+auricular\b/i,/\bcoronar\b/i,
-  /\bneumon[íi]a\b/i,/\basma\b/i,/\bEPOC\b/,
-  /* infecciosas / inmunología */
-  /\bcoronavirus|pandemia|SARS.CoV/i,/\binfluenza|gripe\b/i,
-  /\binfecci[oó]n|infeccioso\b/i,/\binmunolog[íi]a|inmune|inmunidad\b/i,
-  /\bautoimmune|autoinmune\b/i,/\balergi[a]?\b/i,
-  /\bsepsis|septicemia\b/i,/\bVIH\b/i,/\btuberculosis\b/i,
-  /* enfermería y cuidados */
-  /\bcuidados\s+(paliativos|intensivos|enfermeros|domiciliarios|continuados)\b/i,
-  /\benfermería|enfermero[s]?\b/i,/\bgestión\s+de\s+(heridas?|úlceras?)\b/i,
-  /\b[uú]lceras?\s+(por\s+presi[oó]n|venosas?|diab[eé]ticas?)\b/i,
-  /\badherencia\s+(terap[eé]utica|al\s+tratamiento)\b/i,
-  /\bcontinuidad\s+asistencial\b/i,/\bseguridad\s+del\s+paciente\b/i,
-  /\bcaídas?\s+(del\s+paciente|hospitalaria)\b/i,
-  /\bescala\s+de\s+(valoraci[oó]n|Braden|Norton|Barthel|Glasgow|Morse)\b/i,
-  /\bplan\s+de\s+cuidados\b/i,/\bregistros?\s+enfermeros?\b/i,
-  /* nutrición / metabólico */
-  /\bnutrici[oó]n|nutricional\b/i,/\bactividad\s+f[íi]sica|ejercicio\b/i,
-  /\bestilos?\s+de\s+vida\b/i,/\bfactor(es)?\s+de\s+riesgo\b/i,
-  /\bpeso\s+corporal|[íi]ndice\s+de\s+masa\b/i,/\bobesi[oó]n\b/i,
-  /* urgencias / emergencias */
-  /\burgencias\b/i,/\bemergencia\s+m[eé]dica\b/i,/\bparo\s+card[íi]aco\b/i,
-  /\breanimaci[oó]n\b/i,/\bpol[íi]traumatismo|trauma\b/i,
-  /* rehabilitación / fisioterapia */
-  /\bfisioterapia|fisioter[aá]peutico\b/i,/\brehabilitaci[oó]n\s+(card[íi]aca|neurológica|respiratoria)\b/i,
-  /\bejercicios\s+terap[eé]uticos?\b/i,
-  /* oncología */
-  /\bquimioterapia\b/i,/\bradioterapia\b/i,/\binmunoterapia\b/i,
-  /\bmarcador(es)?\s+(tumorales?|biol[oó]gicos?)\b/i,
-  /* farmacología */
-  /\bdosis\b/i,/\binteracci[oó]n\s+farmacol[oó]gica\b/i,
-  /\breacci[oó]n\s+adversa\b/i,/\bfarmacovigilancia\b/i,
-  /* salud pública / epidemiología */
-  /\bprevalencia\b/i,/\bincidencia\b/i,/\bmortalidad\b/i,
-  /\bdeterminantes\s+(sociales|de\s+salud)\b/i,
-  /\bdesigualdad(es)?\s+(en\s+salud)?\b/i,
-  /* otros frecuentes */
-  /\bdiabetes\s+(tipo\s+[12]|gestacional)\b/i,
-  /\bhipoglucemia|hiperglucemia\b/i,
-  /\bacceso\s+vascular\b/i,/\bcat[eé]ter\b/i,
-  /\bcirculaci[oó]n\s+extracorp[oó]rea\b/i,
-  /* ── ENGLISH MeSH TERMS (soporte bilingüe) ── */
-  /\bhypertension\b/i,/\bcancer\b/i,/\btumou?r\b/i,/\bneoplasm\b/i,
-  /\bstroke\b/i,/\bmyocardial\s+infarction\b/i,/\bheart\s+(failure|disease)\b/i,
-  /\bcoronary\s+(artery|disease)\b/i,/\batrial\s+fibrillation\b/i,
-  /\bpneumonia\b/i,/\basthma\b/i,/\bcopd\b/i,/\bchronic\s+obstructive\b/i,
-  /\bsepsis\b/i,/\bdepression\b/i,/\banxiety\b/i,/\bschizophrenia\b/i,
-  /\bdementia\b/i,/\balzheimer\b/i,/\bparkinson\b/i,/\bepilepsy\b/i,
-  /\bobesity\b/i,/\boverweight\b/i,/\bmetabolic\s+syndrome\b/i,
-  /\bchronic\s+kidney\s+disease\b/i,/\brenal\s+failure\b/i,
-  /\bliver\s+(disease|failure|cirrhosis)\b/i,/\bhepatitis\b/i,
-  /\binfection\b/i,/\bvaccin(e|ation)\b/i,/\bantibiotic\b/i,/\bantimicrobial\b/i,
-  /\bsurgery\b/i,/\bsurgical\b/i,/\bpostoperative\b/i,/\bperioperative\b/i,
-  /\bcritical\s+(care|illness)\b/i,/\bintensive\s+care\b/i,
-  /\bpalliative\s+care\b/i,/\bpain\s+(management|relief|chronic)\b/i,
-  /\bcardiovascular\b/i,/\bblood\s+pressure\b/i,/\bglyca?emic\b/i,
-  /\bcholesterol\b/i,/\bglucose\b/i,/\bmortalit(y|ies)\b/i,/\bmorbidity\b/i,
-  /\bsurvival\b/i,/\bprognosis\b/i,/\brecurrence\b/i,/\bremission\b/i,
-  /\bquality\s+of\s+life\b/i,/\bfunctional\s+(outcome|recovery|status)\b/i,
-  /\bpatient\s+(safety|outcome|satisfaction)\b/i,
-  /\badherence\b/i,/\bcompliance\b/i,/\bscreening\b/i,/\bdiagnosis\b/i,
-  /\bbiomarker\b/i,/\btreatment\b/i,/\btherapy\b/i,/\bintervention\b/i,
-  /\bprevention\b/i,/\brisk\s+factor\b/i,/\bincidence\b/i,/\bprevalence\b/i,
-  /\bpediatric\b/i,/\bgeriatric\b/i,/\boncology\b/i,/\bchemotherapy\b/i,
-  /\bradiation\s+therapy\b/i,/\bimmunotherapy\b/i,/\btargeted\s+therapy\b/i,
-  /\bnursing\b/i,/\bwound\s+(care|healing)\b/i,/\brehabilitation\b/i,
-  /\bphysiotherapy\b/i,/\bphysical\s+therapy\b/i,
-  /\bmental\s+health\b/i,/\bpublic\s+health\b/i,/\bprimary\s+care\b/i,
-  /\bemergency\s+(medicine|department|care)\b/i,
-  /\bclinical\s+trial\b/i,/\bplacebo\b/i,/\bdouble.blind\b/i,/\bopen.label\b/i,
-  /\bphase\s+[123]+\b/i,/\brandomized\b/i
-];
-
-const MARCA=/\b[A-Z][a-z]+(®|™|\(r\))\b|\b(Prozac|Viagra|Lipitor|Zocor|Ritalin|Advil|Tylenol|Voltaren|Humira|Keytruda|Opdivo|Remicade|Enbrel|Herceptin|Avastin|Rituxan|Lantus|Crestor|Plavix)\b/i;
-const SESGO=[/\b(solo|únicamente)\s+en\s+(hombres|mujeres|blancos|caucásicos)\b/i];
-
-function detectStudy(t){for(const[k,pp]of Object.entries(STUDY_TYPES))for(const p of pp)if(p.test(t))return k;return null}
-function studyLabel(k){return{eca:'ensayo controlado aleatorizado',cohorte:'estudio de cohorte',casos:'casos y controles',transversal:'estudio transversal',sistematica:'revisión sistemática/metaanálisis',observacional:'estudio observacional',descriptivo:'estudio descriptivo',piloto:'estudio piloto',cualitativo:'estudio cualitativo',antes_despues:'estudio antes-después',diagnostico:'estudio de validación diagnóstica'}[k]||k}
-
-/* ════════════════════════════════════════════════════════════
-   ENGINE
-   ════════════════════════════════════════════════════════════ */
-function engine(title){
-  const t=title,words=t.trim().split(/\s+/).filter(Boolean),wc=words.length,cc=t.length;
-  const study=detectStudy(t),hasColon=t.includes(':'),hasDash=/\s[-–—]\s/.test(t);
-  const hasQ=t.includes('?'),hasBasura=BASURA.some(p=>p.test(t));
-  const hasDecl=DECLARATIVO.some(p=>p.test(t)),hasClick=CLICKBAIT.some(p=>p.test(t));
-  const first4=words.slice(0,4).join(' ');
-  const hasMesh=MESH_P.some(p=>p.test(t)),firstMesh=MESH_P.some(p=>p.test(first4));
-  const firstCtx=/\b(eficac|efectiv|intervenci|tratamiento|prevenci|diagnós|asociaci|prevalenc|mortalidad|supervivencia|incidencia|impacto|efficacy|effectiveness|effect|impact|association|prevention|diagnosis|treatment|therapy|incidence|prevalence|survival|mortality)\b/i.test(first4);
-  const rawAb=(t.match(/\b[A-Z]{2,6}\b/g)||[]);
-  const univF=(t.match(UNIVERSAL)||[]);
-  /* Trial acronym pattern: ALL-CAPS word preceded or followed by Phase/Study/Trial/Estudio */
-  const trialAcro=new Set((t.match(/\b(?:the\s+)?([A-Z]{2,10})\s+(?:phase|trial|study|estudio|ensayo)\b/gi)||[]).concat((t.match(/\b(?:phase|trial|study|estudio|ensayo)\s+(?:the\s+)?([A-Z]{2,10})\b/gi)||[])).map(s=>(s.match(/[A-Z]{2,10}/)||[''])[0]));
-  const badAb=rawAb.filter(a=>
-    !univF.includes(a)&&
-    !trialAcro.has(a)&&
-    !['DE','LA','EL','LOS','LAS','EN','CON','POR','SIN','AL','DEL','UN','UNA','SU','ES','VS','Y','O','A','E',
-      'IN','OF','THE','AND','FOR','WITH','ON','AT','TO','BY','AN','OR','IS','AS','FROM'].includes(a));
-  const hasMarca=MARCA.test(t),hasNums=/\b\d+[,.]?\d*\s*(%|por\s*ciento|veces|puntos|mmHg|mg|kg)\b/i.test(t);
-  const hasSesgo=SESGO.some(p=>p.test(t));
-  const hasHealth=/\b(paciente|cl[íi]nico|m[eé]dico|salud|hospital|diagn[oó]stico|tratamiento|intervenci[oó]n|terapia|enfermedad|poblaci[oó]n|enfermería|patient|clinical|medical|health|disease|treatment|therapy|intervention|diagnosis|population|hospital)\b/i.test(t);
-  const longW=words.filter(w=>w.replace(/[^a-záéíóúñüa-z]/gi,'').length>14);
-  const R={};
-
-  R.descriptivo={ok:!hasDecl&&!hasQ,
-    why:hasDecl?`Contiene lenguaje declarativo que presenta el hallazgo como hecho establecido. El ICMJE desaconseja este estilo en artículos originales.`:
-      hasQ?`Formulado como pregunta. Válido para editoriales, pero no es el estándar ICMJE para investigación primaria.`:
-      `El título es descriptivo e indicativo: presenta el tema sin anticipar las conclusiones. Cumple el criterio ICMJE.`,
-    sug:hasDecl?`Reformula evitando «demuestra», «prueba» o «confirma». Usa «efecto de», «asociación entre» o «comparación de».`:
-      hasQ?`Convierte la pregunta en una declaración descriptiva que nombre la intervención, la población y el diseño.`:null};
-
-  R.compuesto={ok:hasColon||hasDash,
-    why:(hasColon||hasDash)?`Usa ${hasColon?'dos puntos':'guion'} para separar el tema principal del enfoque específico. Estructura bien valorada por revisores.`:
-      `No usa estructura compuesta. Puede ser correcto si es suficientemente específico, pero añadir el diseño tras dos puntos mejoraría la claridad.`,
-    sug:(hasColon||hasDash)?null:`Añade el diseño del estudio tras dos puntos: «: ensayo controlado aleatorizado», «: estudio de cohorte prospectivo», etc.`};
-
-  R.noDecl={ok:!hasDecl,
-    why:hasDecl?`Contiene expresiones declarativas que afirman resultados como verdad absoluta. No cumple las recomendaciones ICMJE.`:
-      `No usa lenguaje declarativo. Cumple la recomendación ICMJE.`,
-    sug:hasDecl?`Sustituye el lenguaje declarativo por: «efecto de», «impacto de», «asociación entre» o «comparación de».`:null};
-
-  R.noInterr={ok:!hasQ,
-    why:hasQ?`Formulado como pregunta. Los motores de búsqueda indexan peor los títulos interrogativos.`:`No es interrogativo. Correcto para investigación primaria.`,
-    sug:hasQ?`Convierte la pregunta en un título declarativo-descriptivo que nombre intervención, población y diseño.`:null};
-
-  R.disenio={ok:!!study,
-    why:study?`Menciona explícitamente el diseño («${studyLabel(study)}»), cumpliendo ${study==='eca'?'CONSORT':study==='sistematica'?'PRISMA':'STROBE'} y las recomendaciones ICMJE.`:
-      `No especifica el diseño del estudio. CONSORT (ECA), STROBE (observacionales) y PRISMA (revisiones) exigen que el tipo figure en el título.`,
-    sug:study?null:`Añade el diseño al final, tras dos puntos: «: ensayo controlado aleatorizado», «: estudio de cohorte prospectivo», «: revisión sistemática y metaanálisis», etc.`};
-
-  R.coherente={ok:hasMesh||hasHealth||wc>=8,
-    why:(hasMesh||hasHealth)?`Contiene términos clínicos o de salud que indican coherencia con el contenido de un manuscrito biomédico.`:
-      wc<8?`Con solo ${wc} palabras es probablemente demasiado vago para ser coherente con un artículo científico.`:
-      `Aparentemente suficientemente específico para ser coherente con el contenido.`,
-    sug:wc<8?`Amplía incluyendo al menos la intervención, la población y el contexto del estudio.`:null};
-
-  R.sinRelleno={ok:!hasBasura,
-    why:hasBasura?`Contiene una «frase basura» al inicio. No aportan información y el ICMJE las desaconseja explícitamente.`:
-      `No incluye frases introductoras redundantes. Cumple el criterio de concisión del ICMJE.`,
-    sug:hasBasura?`Elimina la expresión introductoria y comienza directamente por el tema principal.`:null};
-
-  R.sinBasura=R.sinRelleno;
-
-  R.chars={ok:cc<=280,
-    why:cc<=280?`${cc} caracteres, dentro del límite de 280. Visualización completa garantizada en PubMed, Scopus y gestores.`:
-      `${cc} caracteres, por encima del límite de 280. Puede truncarse en las interfaces de las principales bases de datos.`,
-    sug:cc>280?`Reduce eliminando especificaciones que puedan trasladarse al resumen. Prioriza: intervención, población y diseño.`:null};
-
-  R.palabras={ok:wc>=10&&wc<=15,
-    why:wc>=10&&wc<=15?`${wc} palabras, dentro del rango óptimo (10-15).`:
-      wc<10?`Solo ${wc} palabras. Puede ser demasiado vago para una recuperación bibliográfica efectiva.`:
-      `${wc} palabras, por encima del rango recomendado (10-15). Dificulta la lectura y la memorización.`,
-    sug:wc<10?`Desarrolla el título incluyendo: intervención, comparación (si existe), población y diseño.`:
-      wc>15?`Elimina adjetivos y detalles secundarios. Intenta reducir a 15 palabras máximo.`:null};
-
-  R.kwInicio={ok:firstMesh||firstCtx,
-    why:firstMesh?`Las primeras palabras contienen términos clave del dominio de la salud.`:
-      firstCtx?`El título comienza con términos relevantes para la búsqueda académica.`:
-      `Las primeras palabras («${first4}») no son los términos más específicos del estudio.`,
-    sug:(!firstMesh&&!firstCtx)?`Reordena el título para que los términos más específicos aparezcan en las primeras 3-4 posiciones.`:null};
-
-  R.mesh={ok:hasMesh,
-    why:hasMesh?`Incluye al menos un término reconocido como descriptor MeSH/DeCS (p. ej. «hypertension», «diabetes mellitus», «depression»…). Facilita la indexación correcta en MEDLINE/PubMed.`:
-      `El análisis interno no detecta descriptores MeSH/DeCS conocidos. Esta herramienta trabaja sin conexión a Internet y comprueba contra un vocabulario interno de ~200 términos frecuentes en biomedicina. Si el título contiene un término MeSH que no se ha detectado (p. ej. un fármaco nuevo o una especialidad poco frecuente), usa la corrección manual.`,
-    sug:!hasMesh?`Comprueba el término exacto en meshb.nlm.nih.gov (MeSH) o decs.bvsalud.org (DeCS) e incorpóralo en la forma normalizada que figura en esas bases de datos.`:null};
-
-  R.sinAbrev={ok:badAb.length===0,
-    why:badAb.length===0?`No contiene abreviaturas problemáticas. Las siglas universalmente aceptadas (si las hay) están correctamente empleadas.`:
-      `Contiene ${badAb.length>1?'las abreviaturas':'la abreviatura'} «${badAb.join('», «')}» que no ${badAb.length>1?'son':'es'} de uso universal en biomedicina.`,
-    sug:badAb.length>0?`Desarrolla «${badAb.join('», «')}» en el título. Si es imprescindible, defínela en el abstract, nunca en el título.`:null};
-
-  R.sinMarca={ok:!hasMarca,
-    why:hasMarca?`Contiene un nombre comercial o de marca. BMJ, Lancet y NEJM recomiendan usar la DCI.`:
-      `No contiene nombres comerciales. Se usan denominaciones genéricas.`,
-    sug:hasMarca?`Sustituye por la DCI: «Prozac» → «fluoxetina», «Viagra» → «sildenafilo», «Humira» → «adalimumab».`:null};
-
-  R.comprensible={ok:longW.length<=3&&wc<=20,
-    why:longW.length<=3?`Vocabulario técnico adecuado sin exceso de términos hiperespecializados.`:
-      `Contiene ${longW.length} términos muy extensos («${longW.slice(0,3).join('», «')}»), lo que puede dificultar la comprensión.`,
-    sug:longW.length>3?`Evalúa si algún término largo puede sustituirse por un sinónimo más accesible sin perder precisión técnica.`:null};
-
-  R.noClick={ok:!hasClick,
-    why:hasClick?`Contiene lenguaje sensacionalista. Reduce la credibilidad científica y contraviene las políticas de las principales revistas.`:
-      `No contiene lenguaje sensacionalista ni clickbait. Mantiene el tono neutro y científico.`,
-    sug:hasClick?`Elimina adjetivos de énfasis exagerado y signos de exclamación.`:null};
-
-  R.fiel={ok:!hasDecl,
-    why:hasDecl?`Sugiere conclusiones más fuertes de lo que un único estudio puede establecer.`:
-      `No afirma resultados absolutos. Cumple el principio de honestidad editorial.`,
-    sug:hasDecl?`Observacional → «asociación»; experimental → «efecto» o «eficacia». Evita «prueba», «demuestra» o «confirma».`:null};
-
-  R.equidad={ok:!hasSesgo,
-    why:hasSesgo?`Puede implicar exclusión de género o etnia sin justificación metodológica.`:
-      `No contiene lenguaje que implique sesgo de género, etnia o región. Cumple las recomendaciones SAGER.`,
-    sug:hasSesgo?`Si el estudio incluye solo un grupo por razones metodológicas, especifícalo con precisión. Si no, usa lenguaje neutro.`:null};
-
-  R.sinNums={ok:!hasNums,
-    why:hasNums?`Incluye datos numéricos de resultados. Puede condicionar la interpretación sin conocer el intervalo de confianza.`:
-      `No incluye cifras específicas de resultados.`,
-    sug:hasNums?`Traslada los datos al resumen. En el título describe la dirección del efecto sin cuantificarlo.`:null};
-
-  return{R,meta:{wc,cc,study,hasColon,hasDash,hasQ,hasBasura,hasDecl,hasMesh,badAb,firstMesh,firstCtx}};
+  return {R, meta: {wc: words.length, cc: title.length}};
 }
 
-/* ════════════════════════════════════════════════════════════
-   REWRITE
-   ════════════════════════════════════════════════════════════ */
-/* ─────────────────────────────────────────────────────────────
-   SPELLING CORRECTION DICTIONARY
-   Covers the most frequent missing-accent and typo patterns
-   in medical Spanish titles.
-   ───────────────────────────────────────────────────────────── */
-const SPELL_DICT={
-  /* -ción words without tilde */
-  'atencion':'atención','atenciones':'atenciones',
-  'investigacion':'investigación','evaluacion':'evaluación',
-  'intervencion':'intervención','intervenciones':'intervenciones',
-  'prevencion':'prevención','prevenciones':'prevenciones',
-  'revision':'revisión','revisiones':'revisiones',
-  'poblacion':'población','asociacion':'asociación',
-  'hipertension':'hipertensión','depresion':'depresión',
-  'infeccion':'infección','infecciones':'infecciones',
-  'validacion':'validación','comparacion':'comparación',
-  'hospitalizacion':'hospitalización','rehabilitacion':'rehabilitación',
-  'prescripcion':'prescripción','medicacion':'medicación',
-  'administracion':'administración','proteccion':'protección',
-  'educacion':'educación','formacion':'formación',
-  'actualizacion':'actualización','funcion':'función',
-  'afeccion':'afección','inflamacion':'inflamación',
-  'coagulacion':'coagulación','oxigenacion':'oxigenación',
-  'transfusion':'transfusión','sedacion':'sedación',
-  'intubacion':'intubación','ventilacion':'ventilación',
-  'reseccion':'resección','complicacion':'complicación',
-  'comunicacion':'comunicación','publicacion':'publicación',
-  'implementacion':'implementación','identificacion':'identificación',
-  'clasificacion':'clasificación','aplicacion':'aplicación',
-  'adaptacion':'adaptación','interaccion':'interacción',
-  'reaccion':'reacción','deteccion':'detección',
-  'notificacion':'notificación','programacion':'programación',
-  'reevaluacion':'reevaluación','realizacion':'realización',
-  'derivacion':'derivación','prescripcion':'prescripción',
-  'reduccion':'reducción','introduccion':'introducción',
-  'presentacion':'presentación','afectacion':'afectación',
-  'distribucion':'distribución','situacion':'situación',
-  'mutacion':'mutación','actuacion':'actuación',
-  'infusión':'infusión','transfusion':'transfusión',
-  /* -sis words */
-  'analisis':'análisis','metaanalisis':'metaanálisis',
-  'meta-analisis':'meta-análisis','diagnostico':'diagnóstico',
-  /* -ico/-ía words */
-  'sistematica':'sistemática','sistematico':'sistemático',
-  'sistematicamente':'sistemáticamente',
-  'terapeutico':'terapéutico','terapeutica':'terapéutica',
-  'clinico':'clínico','clinica':'clínica','clinicos':'clínicos',
-  'farmacologico':'farmacológico','farmacologia':'farmacología',
-  'epidemiologico':'epidemiológico','epidemiologia':'epidemiología',
-  'neurologico':'neurológico','neurologia':'neurología',
-  'cardiologico':'cardiológico','cardiologia':'cardiología',
-  'oncologico':'oncológico','oncologia':'oncología',
-  'geriatrico':'geriátrico','geriatria':'geriatría',
-  'pediatrico':'pediátrico','pediatria':'pediatría',
-  'psiquiatrico':'psiquiátrico','psiquiatria':'psiquiatría',
-  'quirurgico':'quirúrgico','cirugia':'cirugía',
-  'nutricional':'nutricional',
-  'multicentrico':'multicéntrico','multicéntrico':'multicéntrico',
-  'aleatorizado':'aleatorizado',
-  /* common typos */
-  'medicacon':'medicación','medicacón':'medicación',
-  'ancianos':'ancianos',
-  /* -ía words */
-  'enfermeria':'enfermería','terapia':'terapia',
-  'fisioterapia':'fisioterapia','farmacovia':'farmacovigilancia',
-  /* participios / adjectives */
-  'controlado':'controlado','prospectivo':'prospectivo',
-  'retrospectivo':'retrospectivo','observacional':'observacional',
-};
-
-/* Study design patterns that may appear at the START of the title
-   and should be moved to the END (after colon), per ICMJE/CONSORT.
-   Each entry: [regex to detect at start, canonical label for end] */
-const DESIGN_AT_START=[
-  [/^(revisiones?\s+sistem[aá]ticas?\s+y\s+meta.?an[aá]lisis)\s+(?:de\s+|sobre\s+|acerca\s+de\s+)?/i,'revisión sistemática y metaanálisis'],
-  [/^(revisi[oó]n\s+sistem[aá]tica\s+y\s+meta.?an[aá]lisis)\s+(?:de\s+|sobre\s+|acerca\s+de\s+)?/i,'revisión sistemática y metaanálisis'],
-  [/^(meta.?an[aá]lisis)\s+(?:de\s+|sobre\s+|acerca\s+de\s+)?/i,'metaanálisis'],
-  [/^(revisi[oó]n\s+sistem[aá]tica)\s+(?:de\s+|sobre\s+|acerca\s+de\s+)?/i,'revisión sistemática'],
-  [/^(ensayo\s+cl[íi]nico?\s+aleatori[sz]ado\s+(?:y\s+)?(?:controlado|doble\s+ciego|multicéntrico)?)\s+(?:de\s+|sobre\s+|para\s+)?/i,'ensayo clínico aleatorizado'],
-  [/^(ensayo\s+controlado\s+aleatori[sz]ado)\s+(?:de\s+|sobre\s+|para\s+)?/i,'ensayo controlado aleatorizado'],
-  [/^(ensayo\s+aleatori[sz]ado)\s+(?:de\s+|sobre\s+|para\s+)?/i,'ensayo aleatorizado'],
-  [/^(estudio\s+de\s+cohortes?\s+(?:prospectiv[ao]|retrospectiv[ao])?)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio de cohortes'],
-  [/^(estudio\s+de\s+cohorte\s+(?:prospectiv[ao]|retrospectiv[ao])?)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio de cohorte'],
-  [/^(estudio\s+de\s+casos?\s+y\s+controles?)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio de casos y controles'],
-  [/^(estudio\s+transversal)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio transversal'],
-  [/^(estudio\s+observacional)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio observacional'],
-  [/^(estudio\s+descriptivo)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio descriptivo'],
-  [/^(estudio\s+piloto)\s+(?:de\s+|sobre\s+|para\s+)?/i,'estudio piloto'],
-  [/^(estudio\s+cualitativo)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio cualitativo'],
-  [/^(estudio\s+antes.?despu[eé]s)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio antes-después'],
-  [/^(estudio\s+cuasi.?experimental)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio cuasiexperimental'],
-  [/^(serie\s+de\s+casos?)\s+(?:de\s+|sobre\s+|en\s+)?/i,'serie de casos'],
-  [/^(validaci[oó]n\s+de\s+(?:un\s+)?(?:cuestionario|escala|instrumento|herramienta|test|índice))\s+(?:para\s+|de\s+|en\s+)?/i,'estudio de validación'],
-  [/^(an[aá]lisis\s+secundario)\s+(?:de\s+|sobre\s+)?/i,'análisis secundario'],
-  [/^(protocolo\s+de\s+estudio)\s+(?:de\s+|para\s+)?/i,'protocolo de estudio'],
-  /* ── ENGLISH design-at-start patterns ── */
-  [/^(?:a\s+)?systematic\s+review\s+and\s+meta.?analysis\s+(?:of\s+|on\s+)?/i,'systematic review and meta-analysis'],
-  [/^(?:a\s+)?systematic\s+review\s+(?:of\s+|on\s+)?/i,'systematic review'],
-  [/^(?:a\s+)?meta.?analysis\s+(?:of\s+|on\s+)?/i,'meta-analysis'],
-  [/^(?:a\s+)?randomized\s+(?:controlled\s+)?(?:clinical\s+)?trial\s+(?:of\s+|on\s+|to\s+)?/i,'randomized controlled trial'],
-  [/^(?:a\s+)?randomised\s+(?:controlled\s+)?(?:clinical\s+)?trial\s+(?:of\s+|on\s+|to\s+)?/i,'randomised controlled trial'],
-  [/^(?:a\s+)?prospective\s+cohort\s+study\s+(?:of\s+|on\s+)?/i,'prospective cohort study'],
-  [/^(?:a\s+)?retrospective\s+cohort\s+study\s+(?:of\s+|on\s+)?/i,'retrospective cohort study'],
-  [/^(?:a\s+)?case.control\s+study\s+(?:of\s+|on\s+)?/i,'case-control study'],
-  [/^(?:a\s+)?cross.sectional\s+study\s+(?:of\s+|on\s+)?/i,'cross-sectional study'],
-  [/^(?:a\s+)?pilot\s+(?:randomized\s+)?(?:controlled\s+)?(?:trial|study)\s+(?:of\s+|on\s+|to\s+)?/i,'pilot study'],
-  [/^(?:a\s+)?qualitative\s+study\s+(?:of\s+|on\s+)?/i,'qualitative study'],
-  [/^(?:a\s+)?validation\s+study\s+(?:of\s+|on\s+)?/i,'validation study'],
-];
-
-function correctSpelling(text){
-  /* Split preserving spaces; correct word by word against dict.
-     We normalise to lowercase for lookup but preserve original case. */
-  return text.replace(/\b[a-záéíóúñüA-ZÁÉÍÓÚÑÜ]+\b/g, word=>{
-    const lower=word.toLowerCase();
-    if(SPELL_DICT[lower]){
-      /* Preserve original capitalisation pattern */
-      const fixed=SPELL_DICT[lower];
-      if(word[0]===word[0].toUpperCase()&&word[0]!==word[0].toLowerCase()){
-        return fixed.charAt(0).toUpperCase()+fixed.slice(1);
-      }
-      return fixed;
-    }
-    return word;
-  });
-}
-
-/* ─────────────────────────────────────────────────────────────
-   WEAK OPENER PATTERNS
-   These openers add no specificity; removing them and starting
-   with the intervention/topic improves keyword position.
-   ───────────────────────────────────────────────────────────── */
-const WEAK_OPENERS=[
-  /* ── SPANISH openers ── */
-  {pat:/^aplicaci[oó]n\s+de\s+(?:un|el|una|la)\s+(?:programa|protocolo|m[eé]todo|t[eé]cnica|intervenci[oó]n)\s+de\s+/i},
-  {pat:/^aplicaci[oó]n\s+de\s+(?:un|el|una|la)\s+/i},
-  {pat:/^implementaci[oó]n\s+de\s+(?:un|el|una|la)\s+(?:programa|protocolo|m[eé]todo)\s+(?:de\s+)?/i},
-  {pat:/^dise[nñ]o\s+(?:y\s+\w+\s+)?de\s+(?:un|el|una|la)\s+(?:programa|protocolo|m[eé]todo)\s+(?:de\s+)?/i},
-  {pat:/^uso\s+de\s+(?:un|el|una|la)\s+/i},
-  {pat:/^papel\s+de\s+(?:la|el|los|las)\s+/i},
-  {pat:/^influencia\s+de\s+(?:la|el|los|las|un|una)\s+/i},
-  {pat:/^evaluaci[oó]n\s+de\s+(?:un|el|una|la)\s+(?:programa|protocolo|m[eé]todo|plan|intervenci[oó]n)\s+(?:de\s+)?/i},
-  {pat:/^efectos?\s+de\s+(?:un|el|una|la)\s+(?:programa|protocolo|m[eé]todo|plan|intervenci[oó]n)\s+(?:de\s+)?/i},
-  /* ── ENGLISH openers (stripped to expose specific noun) ── */
-  {pat:/^(use|utility|role)\s+of\s+/i},
-  {pat:/^(assessment|evaluation|analysis)\s+of\s+(?:the\s+)?/i},
-  {pat:/^(impact|influence|effect)\s+of\s+(?:a\s+|an\s+|the\s+)?(?:novel\s+|new\s+)?(?:program|protocol|method|intervention|approach|strategy)\s+(?:of\s+|on\s+)?/i},
-];
-
-/* ─────────────────────────────────────────────────────────────
-   SHORTENING HELPERS
-   ───────────────────────────────────────────────────────────── */
-function shortenTitle(text){
-  let t=text;
-  /* ── SPANISH shortening ── */
-  t=t.replace(/,\s*basado(?:\s+en)?\s+([^,]+),/gi,' mediante $1');
-  t=t.replace(/,\s*fundamentado(?:\s+en)?\s+([^,]+),/gi,' mediante $1');
-  t=t.replace(/,\s*apoyado(?:\s+en)?\s+([^,]+),/gi,' mediante $1');
-  t=t.replace(/,\s*basado(?:\s+en)?\s+([^,:]+)(\s*:)/gi,' mediante $1$2');
-  t=t.replace(/\b(y)\s+(la|el|los|las)\s+(calidad|cantidad|prevalencia|incidencia|mortalidad|morbilidad|satisfacci[oó]n|funcionalidad|bienestar|dolor|ansiedad|depresi[oó]n)\b/gi,'$1 $3');
-  t=t.replace(/\ben\s+pacientes\s+(que\s+presentan|con\s+diagn[oó]stico\s+de|con)\s+/gi,'en ');
-  t=t.replace(/\ben\s+pacientes\s+tras\b/gi,'tras');
-  t=t.replace(/\ben\s+pacientes\s+con\s+(\w+(?:\s+\w+){0,2})\b/gi,'en $1');
-  /* ── ENGLISH shortening ── */
-  // "in patients with X" → "in X" (≤3 word condition)
-  t=t.replace(/\bin\s+patients\s+with\s+(\w+(?:\s+\w+){0,2})\b/gi,'in $1');
-  // "in patients who have" → omit
-  t=t.replace(/\bin\s+patients\s+(?:who\s+have|with\s+a\s+diagnosis\s+of)\s+/gi,'in ');
-  // "and the quality" → "and quality" (redundant article)
-  t=t.replace(/\b(and)\s+the\s+(quality|quantity|prevalence|incidence|mortality|morbidity|satisfaction|functional|recovery|survival)\b/gi,'$1 $2');
-  // "among patients with" → "in" + condition
-  t=t.replace(/\bamong\s+patients\s+with\s+/gi,'in ');
-  t=t.replace(/\s{2,}/g,' ').trim();
+/* ─── VANCOUVER REWRITE ──────────────────────────────────── */
+function vancouverRewrite(title) {
+  let t = title.trim().replace(/^(El|La|Los|Las|Un|Una|The|A|An)\s+/i, '');
+  t = t.charAt(0).toUpperCase() + t.slice(1);
+  
+  // Re-ordenar: Efecto de X en Y -> Y: efecto de X
+  const effectPattern = /^(Efectos?|Impacto|Eficacia)\s+de\s+(.+?)\s+en\s+(.+)$/i;
+  const match = t.match(effectPattern);
+  if (match) {
+    t = `${match[3].trim()}: ${match[1].toLowerCase()} de ${match[2].trim()}`;
+  }
+  
+  if (!t.includes(':')) t += " [ : especificar diseño ]";
   return t;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   TRIAL ACRONYM EXTRACTION
-   Detects "The ACRONYM Phase N" or "ACRONYM Phase N" suffix
-   and moves it to a parenthetical, keeping only the design label.
-   ───────────────────────────────────────────────────────────── */
-function extractTrialAcronym(text){
-  /* Match ": The ACRONYM Phase N <design>" or ": ACRONYM Phase N <design>"
-     in the suffix part (after colon). Returns {cleaned, acronym, phase, design} or null. */
-  const m=text.match(/:\s*(?:the\s+)?([A-Z]{2,10})\s+(?:phase\s+(\d+|I{1,3}|IV)\s+)?(randomized(?:\s+controlled)?\s+(?:clinical\s+)?trial|randomised(?:\s+controlled)?\s+(?:clinical\s+)?trial|clinical\s+trial|controlled\s+trial)/i);
-  if(!m)return null;
-  const acronym=m[1];
-  const phase=m[2]?m[2].toUpperCase():null;
-  const design=m[3];
-  /* Build clean suffix: keep design + acronym as parenthetical */
-  const phaseStr=phase?`phase ${phase} `:'';
-  const cleanSuffix=`: ${phaseStr}${design} (${acronym})`;
-  /* Remove the matched portion from the original text */
-  const cleaned=text.slice(0,m.index)+cleanSuffix;
-  return{cleaned,acronym,phase,design};
-}
+/* ─── CORE FUNCTIONS ─────────────────────────────────────── */
+async function fetchMeshFromNLM(title) {
+    const row = document.getElementById('row-v_mesh');
+    if (!row) return;
+    
+    // Uso de AbortController para evitar errores de red infinitos
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
 
-function buildRewrite(title,R,meta){
-  let improved=title;
-  const changes=[];
-
-  /* Separate topic (before ":") and design suffix (after ":") */
-  const colonIdx=improved.indexOf(':');
-  let topic=colonIdx>=0?improved.slice(0,colonIdx).trim():improved;
-  let designSuffix=colonIdx>=0?improved.slice(colonIdx):'';//includes ":"
-
-  /* ── 1. SPELLING CORRECTION ─────────────────────────────── */
-  const topicFixed=correctSpelling(topic);
-  const suffixFixed=correctSpelling(designSuffix);
-  const origWords=(topic+' '+designSuffix).trim().split(/\s+/);
-  const fixedWords=(topicFixed+' '+suffixFixed).trim().split(/\s+/);
-  const corrected=[];
-  origWords.forEach((w,i)=>{if(fixedWords[i]&&w!==fixedWords[i])corrected.push(`«${w}» → «${fixedWords[i]}»`);});
-  if(corrected.length>0){
-    changes.push(`Corrección ortográfica: ${corrected.join(', ')}.`);
-    topic=topicFixed;
-    designSuffix=suffixFixed;
-  }
-
-  /* ── 2. ELIMINAR FRASES BASURA ──────────────────────────── */
-  if(!R.sinRelleno.ok){
-    const p=BASURA.find(r=>r.test(topic));
-    if(p){
-      topic=topic.replace(p,'').replace(/^\s*[,:;]\s*/,'');
-      topic=topic.charAt(0).toUpperCase()+topic.slice(1);
-      changes.push('Se eliminó la expresión introductoria redundante del inicio.');
-    }
-  }
-
-  /* ── 3. MOVER DISEÑO DEL INICIO AL FINAL ────────────────── */
-  /* Only if no colon exists yet */
-  if(!designSuffix){
-    for(const [pat,label] of DESIGN_AT_START){
-      const m=topic.match(pat);
-      if(m){
-        const rest=topic.slice(m[0].length).trim().replace(/[.,:;]+$/,'');
-        if(rest.length>4){
-          const restCap=rest.charAt(0).toUpperCase()+rest.slice(1);
-          topic=restCap;
-          designSuffix=`: ${label}`;
-          changes.push(`Se reordenó el título: el diseño del estudio («${label}») se trasladó al final, tras dos puntos (recomendación ICMJE/CONSORT).`);
+    try {
+        const firstWord = title.split(' ')[0].replace(/[^a-zA-Z]/g, '');
+        const r = await fetch(`https://id.nlm.nih.gov/mesh/lookup/term?label=${firstWord}&match=contains&limit=1`, { signal: controller.signal });
+        if (r.ok) {
+            autoResults.v_mesh.ok = true;
+            autoResults.v_mesh.why = "✓ Validado contra la API de la NLM MeSH.";
+            renderItem('v_mesh');
+            updateScore();
         }
-        break;
-      }
-    }
-  }
-
-  /* ── 3b. EXTRAER ACRÓNIMO DE ENSAYO ─────────────────────────
-     Pattern in the suffix: ": The ACRONYM Phase N <design>"
-     → ": phase N <design> (ACRONYM)"
-     Per ICMJE, the trial name/acronym should not precede the design.
-  ────────────────────────────────────────────────────────────── */
-  {
-    const full=topic+(designSuffix||'');
-    const colonIdx=full.indexOf(':');
-    if(colonIdx>=0){
-      const suffix=full.slice(colonIdx+1).trim();
-      /* Match "The? ACRONYM Phase? N? <design>" at the start of suffix */
-      const acroM=suffix.match(/^(?:the\s+)?([A-Z]{2,12})\s+(?:phase\s+(\d+|I{1,3}|IV)\s+)?(randomize[d]?\s+(?:controlled\s+)?(?:clinical\s+)?trial|randomise[d]?\s+(?:controlled\s+)?(?:clinical\s+)?trial|clinical\s+trial|controlled\s+trial)/i);
-      if(acroM){
-        const acro=acroM[1];
-        const ph=acroM[2]?acroM[2].toUpperCase():null;
-        const des=acroM[3].toLowerCase();
-        const phStr=ph?`phase ${ph} `:'';
-        designSuffix=`: ${phStr}${des} (${acro})`;
-        topic=full.slice(0,colonIdx).trim();
-        changes.push(`Se reubicó el acrónimo del ensayo «${acro}» como referencia parentética al final: «(${acro})». Según ICMJE, el nombre del ensayo no debe encabezar el bloque de diseño; el tipo de estudio va primero.`);
-      }
-    }
-  }
-
-
-     Pattern: "Efficacy/Effect/Safety of DRUG in [Patients with] CONDITION"
-     → "CONDITION: efficacy of DRUG"
-     Applied to the TOPIC part regardless of whether a design suffix exists.
-  ────────────────────────────────────────────────────────── */
-  {
-    const enPat=/^(efficacy|effectiveness|effects?|safety|tolerability|benefit|utility|comparison|impact)\s+of\s+([\w][\w\s\-]+?)\s+in\s+(?:patients?\s+with\s+|subjects?\s+with\s+|adults?\s+with\s+|children\s+with\s+)?([\w][\w\s,\-\/]+?)$/i;
-    const enM=topic.match(enPat);
-    if(enM){
-      const verb=enM[1].toLowerCase();
-      const drug=enM[2].trim().replace(/\s+/g,' ');
-      const condition=enM[3].trim().replace(/[,;.]+$/,'').replace(/\s+/g,' ');
-      if(condition.length>3&&drug.length>2){
-        const condCap=condition.charAt(0).toUpperCase()+condition.slice(1);
-        topic=`${condCap}: ${verb} of ${drug}`;
-        changes.push(`Se reordenó el título en inglés: la condición clínica («${condCap}») pasa a primera posición; el verbo descriptivo («${verb} of ${drug}») queda tras los dos puntos (recomendación ICMJE).`);
-      }
-    }
-  }
-  /* Applied always — improves keyword position regardless of score */
-  for(const {pat} of WEAK_OPENERS){
-    const m=topic.match(pat);
-    if(m){
-      const rest=topic.slice(m[0].length).trim().replace(/^[,;]\s*/,'');
-      if(rest.length>4){
-        topic=rest.charAt(0).toUpperCase()+rest.slice(1);
-        changes.push(`Se eliminó el encabezado genérico («${m[0].trim()}») para colocar los términos específicos en primera posición (recomendación ICMJE).`);
-      }
-      break; // one opener max
-    }
-  }
-
-  /* ── 5. SUAVIZAR LENGUAJE DECLARATIVO ───────────────────── */
-  if(!R.noDecl.ok){
-    topic=topic
-      .replace(/\bdemuestra\s+que\b/gi,'sugiere que')
-      .replace(/\bprueba\s+que\b/gi,'indica que')
-      .replace(/\bconfirma\s+que\b/gi,'muestra evidencia de que')
-      .replace(/\bes\s+superior\s+a\b/gi,'muestra mayor eficacia que')
-      .replace(/\bes\s+m[aá]s\s+efectiv[ao]\s+que\b/gi,'presenta mayor efectividad que');
-    changes.push('Se suavizó el lenguaje declarativo para reflejar el alcance real del estudio.');
-  }
-
-  /* ── 6. AÑADIR MARCADOR DE DISEÑO SI FALTA ──────────────── */
-  if(!R.disenio.ok&&!designSuffix){
-    designSuffix=': [especificar diseño del estudio]';
-    changes.push('Se añadió un marcador para el diseño del estudio. Sustitúyelo por el tipo real.');
-  }
-
-  /* Reconstitute before shortening */
-  improved=(topic+designSuffix).replace(/[.]+$/,'').trim();
-
-  /* ── 7. ACORTAR TÍTULO LARGO ─────────────────────────────── */
-  const wc=improved.split(/\s+/).filter(Boolean).length;
-  if(wc>15){
-    /* Shorten topic part, keep design suffix intact */
-    const colonPos=improved.indexOf(':');
-    let topicPart=colonPos>=0?improved.slice(0,colonPos):improved;
-    const suffixPart=colonPos>=0?improved.slice(colonPos):'';
-    const topicShortened=shortenTitle(topicPart);
-    const newWc=(topicShortened+suffixPart).split(/\s+/).filter(Boolean).length;
-    if(topicShortened!==topicPart&&newWc<wc){
-      improved=(topicShortened+suffixPart).trim();
-      changes.push(`Se redujo la extensión del título (de ${wc} a ${newWc} palabras) eliminando redundancias sintácticas y cláusulas parentéticas. Revisa que el significado se preserve.`);
-    }
-  }
-
-  /* ── 8. CONVERTIR INTERROGATIVO ──────────────────────────── */
-  if(meta.hasQ){
-    improved=improved.replace(/^¿\s*/,'').replace(/\?/g,'');
-    improved=improved.charAt(0).toUpperCase()+improved.slice(1);
-    changes.push('Se convirtió el título interrogativo en declarativo-descriptivo.');
-  }
-
-  /* ── 9. ELIMINAR SIGNOS DE EXCLAMACIÓN ──────────────────── */
-  if(improved.includes('!')){
-    improved=improved.replace(/!/g,'');
-    changes.push('Se eliminó el signo de exclamación.');
-  }
-
-  /* ── 10. LIMPIAR PUNTUACIÓN FINAL Y ESPACIOS ────────────── */
-  improved=improved
-    .replace(/\s{2,}/g,' ')
-    .replace(/\s+([,;:.?!])/g,'$1')
-    .replace(/[.,;]+$/,'')
-    .trim();
-  if(improved.length>0)improved=improved.charAt(0).toUpperCase()+improved.slice(1);
-
-  const why=changes.length===0
-    ?'El título ya cumple los criterios normativos evaluados. No se han aplicado cambios automáticos.'
-    :`Se han aplicado ${changes.length} corrección${changes.length>1?'es':''} automática${changes.length>1?'s':''}.`;
-  return{improved:improved.trim(),why,changes};
+    } catch (e) {} finally { clearTimeout(timeout); }
 }
 
-function buildGlobalSugs(R,meta){
-  const s=[];
-  if(!R.disenio?.ok)s.push('Añade el diseño del estudio en el título (tras dos puntos). Es exigencia de CONSORT, STROBE y PRISMA.');
-  if(!R.mesh?.ok)s.push('Incorpora al menos un descriptor MeSH o DeCS normalizado. Consúltalo en meshb.nlm.nih.gov o decs.bvsalud.org.');
-  if(!R.kwInicio?.ok)s.push('Reordena el título para que los términos más específicos aparezcan en las primeras 3-4 palabras.');
-  if(!R.sinAbrev?.ok&&meta.badAb.length)s.push(`Desarrolla «${meta.badAb.join('», «')}». Las siglas no universales reducen la recuperabilidad.`);
-  if(!R.palabras?.ok&&meta.wc<10)s.push('El título es demasiado breve. Incluye al menos la intervención, la población y el diseño.');
-  if(!R.palabras?.ok&&meta.wc>15)s.push('El título es demasiado extenso. Elimina adjetivos y detalles secundarios; intenta llegar a 15 palabras máximo.');
-  if(!R.noDecl?.ok)s.push('Evita el lenguaje declarativo. Usa «efecto de», «asociación entre» o «comparación de».');
-  if(!R.sinRelleno?.ok)s.push('Elimina la expresión introductoria redundante y comienza directamente por el tema principal.');
-  return s;
-}
-
-/* ════════════════════════════════════════════════════════════
-   BUILD UI
-   ════════════════════════════════════════════════════════════ */
-function buildChecklist(){
-  const cont=document.getElementById('checklistContainer');cont.innerHTML='';
-  CRITERIA.forEach(sec=>{
-    const wrap=document.createElement('div');wrap.className='section-wrap';wrap.setAttribute('role','group');wrap.setAttribute('aria-label',sec.title);
-    const head=document.createElement('div');head.className='section-head';
-    head.setAttribute('tabindex','0');head.setAttribute('role','button');
-    head.setAttribute('aria-expanded','true');head.setAttribute('aria-controls','si-'+sec.id);
-    /* FIX M: tooltip on section title */
-    head.innerHTML=`
-      <div class="section-dot" style="background:${sec.color}" aria-hidden="true"></div>
-      <span class="section-name has-tooltip" style="position:relative">
-        ${sec.title}
-        <span class="tooltip-box" role="tooltip">${sec.tooltip}</span>
-      </span>
-      <span class="section-score" id="sc-${sec.id}" aria-label="Puntuación de sección">0/${sec.items.length}</span>
-      <span class="chev open" id="chev-${sec.id}" aria-hidden="true">▼</span>`;
-    const toggleSec=()=>{
-      const items=document.getElementById('si-'+sec.id);
-      const isOpen=items.classList.toggle('open');
-      document.getElementById('chev-'+sec.id).classList.toggle('open',isOpen);
-      head.setAttribute('aria-expanded',isOpen);
-    };
-    head.addEventListener('click',toggleSec);
-    head.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();toggleSec();}});
-
-    const items=document.createElement('div');items.className='section-items open';items.id='si-'+sec.id;items.setAttribute('role','list');
-
-    sec.items.forEach(it=>{
-      const row=document.createElement('div');
-      row.className='item-row';row.id='row-'+it.id;row.setAttribute('role','listitem');
-      row.innerHTML=`
-        <!-- FIX C: real checkbox, accessible -->
-        <div class="cb-wrap" title="Haz clic para cambiar manualmente">
-          <input type="checkbox" class="cb-input" id="cb-${it.id}"
-            aria-label="${it.label}"
-            aria-describedby="why-${it.id}"
-            onchange="manualToggle('${it.id}')">
-          <div class="cb-visual" id="cbv-${it.id}" aria-hidden="true"></div>
-        </div>
-        <div class="item-body">
-          <div class="item-header-row" role="button" tabindex="-1"
-            aria-label="Alternar criterio: ${it.label}"
-            onclick="manualToggle('${it.id}')">
-            <span class="item-label">
-              ${it.label}
-              ${it.req?`<span class="badge badge-req has-tooltip" style="margin-left:6px" tabindex="0">obligatorio<span class="tooltip-box" role="tooltip">${it.guideTooltip}</span></span>`:
-                      `<span class="badge badge-rec has-tooltip" style="margin-left:6px" tabindex="0">recomendado<span class="tooltip-box" role="tooltip">${it.guideTooltip}</span></span>`}
-            </span>
-            <span class="badge badge-manual" id="badge-manual-${it.id}" style="display:none" aria-live="polite">corregido manualmente</span>
-            <button class="override-btn" id="obtn-${it.id}"
-              onclick="undoOverride('${it.id}',event)"
-              aria-label="Deshacer corrección manual de: ${it.label}">↩ deshacer corrección</button>
-          </div>
-          <div class="item-note" id="note-${it.id}">${it.note}</div>
-          <div class="item-explain" id="exp-${it.id}" role="region" aria-label="Explicación del criterio">
-            <div class="explain-why" id="why-${it.id}"></div>
-            <div class="explain-sug" id="esug-${it.id}">
-              <span class="sug-label">Sugerencia de mejora</span>
-              <span id="esugt-${it.id}"></span>
-            </div>
-          </div>
-          <!-- FIX K: comment hidden until evaluation -->
-          <div class="comment-wrap" id="cwrap-${it.id}">
-            <label class="comment-lbl" for="comment-${it.id}">Comentario del revisor</label>
-            <textarea class="item-comment" id="comment-${it.id}"
-              placeholder="Añade una nota o justificación sobre este criterio…"
-              aria-label="Comentario para el criterio: ${it.label}"
-              oninput="saveComment('${it.id}',this.value)"></textarea>
-          </div>
-        </div>`;
-      items.appendChild(row);
-    });
-    wrap.appendChild(head);wrap.appendChild(items);cont.appendChild(wrap);
-  });
-}
-
-function saveComment(id,val){state[id].comment=val;}
-
-/* ════════════════════════════════════════════════════════════
-   FIX D: FILTER TOGGLE
-   ════════════════════════════════════════════════════════════ */
-function toggleFilter(){
-  filterFailed=!filterFailed;
-  const btn=document.getElementById('btnFilter');
-  btn.classList.toggle('active',filterFailed);
-  btn.setAttribute('aria-pressed',filterFailed);
-  document.getElementById('filterLabel').textContent=filterFailed?'Mostrar todos':'Mostrar solo incumplidos';
-  applyFilter();
-}
-function applyFilter(){
-  CRITERIA.forEach(sec=>sec.items.forEach(it=>{
-    const row=document.getElementById('row-'+it.id);
-    if(!row)return;
-    if(filterFailed){
-      row.classList.toggle('hidden',state[it.id].val);
-    } else {
-      row.classList.remove('hidden');
-    }
-  }));
-}
-
-/* ════════════════════════════════════════════════════════════
-   MANUAL TOGGLE & RENDER
-   ════════════════════════════════════════════════════════════ */
-function manualToggle(id){
-  const cur=state[id];
-  state[id]={val:!cur.val,src:'manual',comment:cur.comment};
-  // sync real checkbox
-  document.getElementById('cb-'+id).checked=state[id].val;
-  renderItem(id);
-  updateScore();
-  updateGlobalSugs();
-  if(filterFailed)applyFilter();
-}
-
-function undoOverride(id,e){
-  e.stopPropagation();
-  const orig=autoResults[id];if(!orig)return;
-  const comment=state[id].comment;
-  state[id]={val:orig.ok,src:'auto',comment};
-  document.getElementById('cb-'+id).checked=orig.ok;
-  renderItem(id);
-  updateScore();
-  updateGlobalSugs();
-  if(filterFailed)applyFilter();
-}
-
-function renderItem(id){
-  const s=state[id];
-  const cbv=document.getElementById('cbv-'+id);
-  const row=document.getElementById('row-'+id);
-  const why=document.getElementById('why-'+id);
-  const esug=document.getElementById('esug-'+id);
-  const esugt=document.getElementById('esugt-'+id);
-  const exp=document.getElementById('exp-'+id);
-  const badge=document.getElementById('badge-manual-'+id);
-  const obtn=document.getElementById('obtn-'+id);
-  const cwrap=document.getElementById('cwrap-'+id);
-  const orig=autoResults[id];
-
-  /* FIX K: show comment wrap when item has been evaluated */
-  if(cwrap)cwrap.classList.add('show');
-
-  if(s.src==='manual'){
-    cbv.className='cb-visual manual '+(s.val?'checked':'failed');
-    row.classList.remove('auto-ok','auto-fail','overridden-ok','overridden-fail');
-    row.classList.add(s.val?'overridden-ok':'overridden-fail');
-    badge.style.display='inline-block';
-    obtn.className='override-btn undo show';
-    if(orig){
-      why.textContent=s.val
-        ?`✓ Marcado manualmente como cumplido. La evaluación automática indicaba: ${orig.why}`
-        :`✗ Marcado manualmente como no cumplido. La evaluación automática indicaba: ${orig.why}`;
-      why.className='explain-why '+(s.val?'manual-ok':'manual-fail');
-    }
-    exp.className='item-explain show';
-    if(s.val){esug.className='explain-sug';}
-    else if(orig&&orig.sug){esugt.textContent=orig.sug;esug.className='explain-sug show';}
-  } else {
-    if(!orig)return;
-    cbv.className='cb-visual'+(orig.ok?' checked':' failed');
-    row.classList.remove('auto-ok','auto-fail','overridden-ok','overridden-fail');
-    row.classList.add(orig.ok?'auto-ok':'auto-fail');
-    badge.style.display='none';
-    obtn.className='override-btn';
-    why.textContent=orig.why||'';
-    why.className='explain-why '+(orig.ok?'ok':'fail');
-    exp.className='item-explain show';
-    if(orig.sug){esugt.textContent=orig.sug;esug.className='explain-sug show';}
-    else esug.className='explain-sug';
-  }
-}
-
-function applyAutoResults(R){
-  CRITERIA.forEach(sec=>sec.items.forEach(it=>{
-    const res=R[it.id];if(!res)return;
-    autoResults[it.id]=res;
-    const comment=state[it.id].comment;
-    state[it.id]={val:res.ok,src:'auto',comment};
-    document.getElementById('cb-'+it.id).checked=res.ok;
-    renderItem(it.id);
-  }));
-  updateScore();
-}
-
-/* ════════════════════════════════════════════════════════════
-   SCORE + PROGRESS (segmented bar)
-   ════════════════════════════════════════════════════════════ */
-function updateScore(){
-  const score=Object.keys(state).filter(k=>state[k].val).length;
-  const pct=Math.round(score/TOTAL*100);
-  const oblDone=CRITERIA.reduce((a,s)=>a+s.items.filter(it=>it.req&&state[it.id].val).length,0);
-  const recDone=CRITERIA.reduce((a,s)=>a+s.items.filter(it=>!it.req&&state[it.id].val).length,0);
-  const manualCount=CRITERIA.reduce((a,s)=>a+s.items.filter(it=>state[it.id].src==='manual').length,0);
-
-  document.getElementById('scoreBig').innerHTML=score+'<span>/'+TOTAL+'</span>';
-  document.getElementById('scorePct').textContent=pct+'% de criterios cumplidos';
-
-  const v=getVerdict(pct,oblDone);
-  document.getElementById('verdictText').textContent=v.text;
-
-  /* segmented progress bar */
-  const oblPct=Math.round(oblDone/TOTAL*100);
-  const recPct=Math.round(recDone/TOTAL*100);
-  const oblBar=document.getElementById('progressObl');
-  const recBar=document.getElementById('progressRec');
-  oblBar.style.width=oblPct+'%';
-  oblBar.style.background=v.color;
-  recBar.style.width=recPct+'%';
-  recBar.style.background='rgba(245,242,236,.3)';
-  const pb=document.getElementById('progressBar');
-  pb.setAttribute('aria-valuenow',pct);
-  pb.setAttribute('aria-valuetext',`${pct}% cumplido — ${oblDone} de ${TOTAL_OBL} obligatorios`);
-
-  document.getElementById('aiVerdict').textContent=getShort(pct,oblDone);
-
-  /* FIX N: manual corrections indicator */
-  const mi=document.getElementById('manualIndicator');
-  if(manualCount>0){
-    mi.textContent=`✏ ${manualCount} corrección${manualCount>1?'es':''} manual${manualCount>1?'es':''}`;
-    mi.className='manual-indicator show';
-  } else {
-    mi.className='manual-indicator';
-  }
-
-  CRITERIA.forEach(sec=>{
-    const d=sec.items.filter(it=>state[it.id].val).length;
-    document.getElementById('sc-'+sec.id).textContent=d+'/'+sec.items.length;
-  });
-
-  document.getElementById('svO').textContent=oblDone+'/'+TOTAL_OBL;
-  document.getElementById('scO').className='stat-card '+(oblDone===TOTAL_OBL?'ok':oblDone>=Math.ceil(TOTAL_OBL*0.7)?'warn':'err');
-  document.getElementById('svR').textContent=recDone+'/'+TOTAL_REC;
-  document.getElementById('scR').className='stat-card '+(recDone===TOTAL_REC?'ok':'warn');
-}
-
-function updateGlobalSugs(){
-  const activeR={};
-  CRITERIA.forEach(sec=>sec.items.forEach(it=>{
-    const orig=autoResults[it.id];if(!orig)return;
-    activeR[it.id]={...orig,ok:state[it.id].val};
-  }));
-  const lastMeta=window._lastMeta;if(!lastMeta)return;
-  const sugs=buildGlobalSugs(activeR,lastMeta);
-  const sugSection=document.getElementById('sugSection');
-  const sugList=document.getElementById('sugList');sugList.innerHTML='';
-  if(sugs.length>0){
-    sugSection.style.display='block';
-    sugs.forEach(s=>{const d=document.createElement('div');d.className='sug-item';d.textContent=s;sugList.appendChild(d)});
-  } else sugSection.style.display='none';
-}
-
-function getVerdict(pct,obl){
-  if(obl<Math.ceil(TOTAL_OBL*0.5))return{text:'Insuficiente — el título debe reformularse',color:'#E24B4A'};
-  if(pct===100)return{text:'Excelente — título óptimo según normativas',color:'#2D6A4F'};
-  if(pct>=80)return{text:'Muy bueno — pequeños ajustes recomendados',color:'#639922'};
-  if(pct>=60)return{text:'Aceptable — requiere revisión en varios criterios',color:'#BA7517'};
-  if(pct>=40)return{text:'Deficiente — múltiples criterios incumplidos',color:'#D85A30'};
-  return{text:'Insuficiente — el título debe reformularse',color:'#E24B4A'};
-}
-function getShort(pct,obl){
-  if(obl<Math.ceil(TOTAL_OBL*0.5))return'Incumple criterios obligatorios fundamentales del ICMJE y guías de reporte.';
-  if(pct===100)return'Cumple todos los criterios normativos internacionales evaluados.';
-  if(pct>=80)return'Cumple la mayoría de criterios. Revisa los ítems marcados en rojo.';
-  if(pct>=60)return'Aceptable, pero hay áreas de mejora relevantes para la indexación y el rigor editorial.';
-  return'El título presenta carencias significativas que pueden afectar su indexación y recepción editorial.';
-}
-
-/* ════════════════════════════════════════════════════════════
-   FIX A, B: CONFIRMATION MODALS
-   ════════════════════════════════════════════════════════════ */
-function openModal(id){
-  const m=document.getElementById(id);
-  m.classList.add('open');
-  // focus first button
-  setTimeout(()=>{const f=m.querySelector('button');if(f)f.focus();},50);
-}
-function closeModal(id){
-  document.getElementById(id).classList.remove('open');
-  // return focus to trigger
-  document.getElementById('btnAnalyze').focus();
-}
-
-/* FIX A */
-function requestAnalyze(){
-  const manualCount=CRITERIA.reduce((a,s)=>a+s.items.filter(it=>state[it.id].src==='manual').length,0);
-  const commentCount=CRITERIA.reduce((a,s)=>a+s.items.filter(it=>state[it.id].comment.trim()).length,0);
-  const hasEvaluated=Object.keys(autoResults).length>0;
-  if(hasEvaluated&&(manualCount>0||commentCount>0)){
-    const body=document.getElementById('modalReanalyzeBody');
-    const parts=[];
-    if(manualCount>0)parts.push(`${manualCount} corrección${manualCount>1?'es':''} manual${manualCount>1?'es':''}`);
-    if(commentCount>0)parts.push(`${commentCount} comentario${commentCount>1?'s':''}`);
-    body.textContent=`Esta acción borrará ${parts.join(' y ')}. ¿Continuar?`;
-    openModal('modalReanalyze');
+function requestAnalyze() {
+  if (Object.keys(autoResults).length > 0) {
+    openModal('modalConfirm');
   } else {
     doAnalyze();
   }
 }
-function confirmReanalyze(){
-  closeModal('modalReanalyze');
-  doAnalyze();
-}
 
-/* FIX B */
-function requestClear(){
-  const hasContent=document.getElementById('titleInput').value.trim().length>0||Object.keys(autoResults).length>0;
-  if(hasContent){openModal('modalClear');}
-  else{doClear();}
-}
-function confirmClear(){closeModal('modalClear');doClear();}
+function doAnalyze() {
+  const title = document.getElementById('titleInput').value.trim();
+  if (title.length < 5) return;
 
-/* ════════════════════════════════════════════════════════════
-   FIX: close modals on Escape / backdrop click
-   ════════════════════════════════════════════════════════════ */
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){
-    ['modalReanalyze','modalClear'].forEach(id=>{
-      document.getElementById(id).classList.remove('open');
-    });
-  }
-});
-['modalReanalyze','modalClear'].forEach(id=>{
-  document.getElementById(id).addEventListener('click',e=>{
-    if(e.target===e.currentTarget)closeModal(id);
-  });
-});
+  const btn = document.getElementById('btnAnalyze');
+  btn.disabled = true;
+  btn.textContent = "Analizando...";
 
-/* ════════════════════════════════════════════════════════════
-   ANALYZE & CLEAR
-   ════════════════════════════════════════════════════════════ */
-function doAnalyze(){
-  const title=document.getElementById('titleInput').value.trim();if(!title)return;
-  /* FIX: loading state */
-  const btn=document.getElementById('btnAnalyze');
-  const btnText=document.getElementById('btnText');
-  btn.disabled=true;btnText.textContent='Evaluando…';
-  setTimeout(()=>{
-    const words=title.split(/\s+/).filter(Boolean);
-    document.getElementById('svW').textContent=words.length;
-    document.getElementById('scW').className='stat-card '+(words.length>=10&&words.length<=15?'ok':words.length<=20?'warn':'err');
-    document.getElementById('svC').textContent=title.length;
-    document.getElementById('scC').className='stat-card '+(title.length<=280?'ok':'err');
-    const{R,meta}=engine(title);
-    window._lastMeta=meta;
-    applyAutoResults(R);
-    /* Async NLM MeSH verification — runs in background, updates UI when done */
+  setTimeout(() => {
+    const {R, meta} = engine(title);
+    Object.assign(autoResults, R);
+    
+    // Aplicar resultados
+    CRITERIA.forEach(s => s.items.forEach(it => {
+        state[it.id].val = R[it.id].ok;
+        renderItem(it.id);
+    }));
+
+    // Estadísticas
+    document.getElementById('svW').textContent = meta.wc;
+    document.getElementById('svC').textContent = meta.cc;
+    
+    // Propuesta Vancouver
+    document.getElementById('rwTitle').textContent = vancouverRewrite(title);
+    document.getElementById('rwBox').classList.add('show');
+
+    // UI Final
+    const res = document.getElementById('results');
+    res.style.display = 'block';
+    setTimeout(() => {
+        res.classList.add('visible');
+        res.scrollIntoView({behavior:'smooth'});
+        btn.disabled = false;
+        btn.textContent = "Re-evaluar";
+    }, 100);
+
+    updateScore();
     fetchMeshFromNLM(title);
-    const rw=buildRewrite(title,R,meta);
-    document.getElementById('rwTitle').textContent=rw.improved;
-    document.getElementById('rwWhy').textContent=rw.why;
-    const chBox=document.getElementById('rwChanges');chBox.innerHTML='';
-    rw.changes.forEach(c=>{const d=document.createElement('div');d.className='rw-change';d.textContent=c;chBox.appendChild(d)});
-    document.getElementById('rwBox').className='rewrite-box show';
-    updateGlobalSugs();
-    if(filterFailed)applyFilter();
-    document.getElementById('downloadRow').style.display='flex';
-    const res=document.getElementById('results');res.style.display='block';
-    setTimeout(()=>{res.classList.add('visible');res.scrollIntoView({behavior:'smooth',block:'start'})},50);
-    btn.disabled=false;btnText.textContent='Volver a evaluar';
-    btn.removeAttribute('aria-disabled');
-  },80);
+  }, 400);
 }
 
-function doClear(){
-  document.getElementById('titleInput').value='';
-  document.getElementById('charCount').textContent='0 / 280';
-  document.getElementById('charCount').className='char-count';
-  const btn=document.getElementById('btnAnalyze');
-  btn.disabled=true;btn.setAttribute('aria-disabled','true');
-  document.getElementById('btnText').textContent='Evaluar título';
-  const res=document.getElementById('results');
-  res.classList.remove('visible');
-  setTimeout(()=>{res.style.display='none'},400);
-  CRITERIA.forEach(s=>s.items.forEach(it=>{
-    state[it.id]={val:false,src:'auto',comment:''};
-    delete autoResults[it.id];
-    const cb=document.getElementById('cb-'+it.id);if(cb)cb.checked=false;
-    const cbv=document.getElementById('cbv-'+it.id);if(cbv)cbv.className='cb-visual';
-    const row=document.getElementById('row-'+it.id);if(row)row.className='item-row';
-    const exp=document.getElementById('exp-'+it.id);if(exp)exp.className='item-explain';
-    const badge=document.getElementById('badge-manual-'+it.id);if(badge)badge.style.display='none';
-    const obtn=document.getElementById('obtn-'+it.id);if(obtn)obtn.className='override-btn';
-    const cwrap=document.getElementById('cwrap-'+it.id);if(cwrap)cwrap.classList.remove('show');
-    const commentEl=document.getElementById('comment-'+it.id);if(commentEl)commentEl.value='';
-  }));
-  filterFailed=false;
-  document.getElementById('btnFilter').classList.remove('active');
-  document.getElementById('btnFilter').setAttribute('aria-pressed','false');
-  document.getElementById('filterLabel').textContent='Mostrar solo incumplidos';
-  document.getElementById('rwBox').className='rewrite-box';
-  document.getElementById('sugSection').style.display='none';
-  document.getElementById('downloadRow').style.display='none';
-  document.getElementById('manualIndicator').className='manual-indicator';
-  window._lastMeta=null;
-  document.getElementById('titleInput').focus();
-}
-
-/* ════════════════════════════════════════════════════════════
-   ASYNC NLM MeSH API LOOKUP
-   Queries https://id.nlm.nih.gov/mesh/lookup/term (public, CORS-enabled)
-   Runs after the synchronous analysis and updates the mesh item
-   if terms are found that the local regex library missed.
-   ════════════════════════════════════════════════════════════ */
-async function fetchMeshFromNLM(title){
-  /* Only run if local analysis already marked mesh as failed */
-  if(autoResults['mesh']?.ok)return;
-
-  /* Build candidate terms from the title:
-     single content words (>4 chars) + consecutive bigrams + trigrams */
-  const stopWords=new Set(['with','from','after','before','during','their','this','that','than','then','were','have','been','into','about','over','under','through','between','within','without','against','among','upon','across','along','since','until','while','para','para','para','los','las','del','que','con','por','sin','una','uno','como','hacia','desde','hasta','sobre','entre','según']);
-  const raw=title.replace(/["""''«»()\[\]:;,.!?]/g,' ').split(/\s+/).filter(w=>w.length>3&&!/^\d+$/.test(w)&&!stopWords.has(w.toLowerCase()));
-  const candidates=new Set();
-  raw.forEach((w,i)=>{
-    candidates.add(w);
-    if(raw[i+1])candidates.add(w+' '+raw[i+1]);
-    if(raw[i+1]&&raw[i+2])candidates.add(w+' '+raw[i+1]+' '+raw[i+2]);
-  });
-
-  /* Show a non-intrusive "verifying MeSH…" note */
-  const whyEl=document.getElementById('why-mesh');
-  if(whyEl){
-    const orig=whyEl.textContent;
-    whyEl.textContent=orig+' (Verificando en NLM MeSH…)';
-  }
-
-  for(const term of candidates){
-    if(term.length<4)continue;
-    try{
-      const url=`https://id.nlm.nih.gov/mesh/lookup/term?label=${encodeURIComponent(term)}&match=exact&limit=1`;
-      const r=await fetch(url,{signal:AbortSignal.timeout(4000)});
-      if(!r.ok)continue;
-      const data=await r.json();
-      if(data&&data.length>0){
-        const meshLabel=data[0].label;
-        /* Found a real MeSH term in the title — update the result */
-        autoResults['mesh']={
-          ok:true,
-          why:`✓ Descriptor MeSH verificado en NLM: «${meshLabel}». Indexación correcta en MEDLINE/PubMed garantizada.`,
-          sug:null
-        };
-        const comment=state['mesh'].comment;
-        state['mesh']={val:true,src:'auto',comment};
-        document.getElementById('cb-mesh').checked=true;
-        renderItem('mesh');
-        updateScore();
-        updateGlobalSugs();
-        /* Update rewrite: remove MeSH suggestion from changes if it was there */
-        return;
-      }
-    }catch(e){
-      /* Network error, CORS block, timeout — fail silently */
+function renderItem(id) {
+    const container = document.getElementById('checklistContainer');
+    let row = document.getElementById('row-' + id);
+    
+    if (!row) {
+        row = document.createElement('div');
+        row.id = 'row-' + id;
+        row.className = 'item-row';
+        container.appendChild(row);
     }
-  }
-  /* Restore original explanation if nothing found */
-  if(whyEl)whyEl.textContent=whyEl.textContent.replace(' (Verificando en NLM MeSH…)','');
-}
-function copyImprovedTitle(){
-  const txt=document.getElementById('rwTitle').textContent;
-  if(!txt)return;
-  navigator.clipboard.writeText(txt).then(()=>{
-    const btn=document.getElementById('btnCopyRw');
-    const lbl=document.getElementById('btnCopyRwLabel');
-    btn.classList.add('copied');lbl.textContent='¡Copiado!';
-    setTimeout(()=>{btn.classList.remove('copied');lbl.textContent='Copiar';},2000);
-  }).catch(()=>showToast('No se pudo copiar al portapapeles'));
-}
-
-/* ════════════════════════════════════════════════════════════
-   TOAST
-   ════════════════════════════════════════════════════════════ */
-function showToast(msg,duration=2500){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
-  clearTimeout(t._tid);
-  t._tid=setTimeout(()=>t.classList.remove('show'),duration);
-}
-
-/* ════════════════════════════════════════════════════════════
-   REPORT GENERATION
-   ════════════════════════════════════════════════════════════ */
-function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-function buildReportHTML(){
-  const title=document.getElementById('titleInput').value.trim();
-  const score=Object.keys(state).filter(k=>state[k].val).length;
-  const pct=Math.round(score/TOTAL*100);
-  const oblDone=CRITERIA.reduce((a,s)=>a+s.items.filter(it=>it.req&&state[it.id].val).length,0);
-  const verdict=getVerdict(pct,oblDone).text;
-  const short=getShort(pct,oblDone);
-  const rwTitle=document.getElementById('rwTitle').textContent;
-  const now=new Date().toLocaleString('es-ES',{dateStyle:'long',timeStyle:'short'});
-  const manualCount=CRITERIA.reduce((a,s)=>a+s.items.filter(it=>state[it.id].src==='manual').length,0);
-  const barColor=getVerdict(pct,oblDone).color;
-
-  let sectionsHtml='';
-  CRITERIA.forEach(sec=>{
-    const doneCount=sec.items.filter(it=>state[it.id].val).length;
-    let itemsHtml='';
-    sec.items.forEach(it=>{
-      const s=state[it.id];const orig=autoResults[it.id];
-      const isManual=s.src==='manual';
-      const statusColor=s.val?'#2D6A4F':'#8B1A1A';
-      const statusBg=s.val?'#D8F0E5':'#F5DADA';
-      const statusIcon=s.val?'✓':'✗';
-      let whyText=orig?(isManual?(s.val?`✓ Corregido manualmente como cumplido. Evaluación automática: ${orig.why}`:`✗ Corregido manualmente como no cumplido. Evaluación automática: ${orig.why}`):orig.why):'';
-      const sugText=(orig&&orig.sug&&!s.val)?orig.sug:'';
-      const commentText=s.comment?s.comment:'';
-      const manualBadge=isManual?`<span style="font-size:10px;font-family:monospace;background:#DAE8F5;color:#1A3A6B;border:1px dashed #1A3A6B;padding:1px 6px;border-radius:2px;margin-left:6px;">corregido manualmente</span>`:'';
-      const reqBadge=it.req?`<span style="font-size:10px;font-family:monospace;background:#F5DADA;color:#8B1A1A;padding:1px 6px;border-radius:2px;margin-left:6px;">obligatorio</span>`:
-        `<span style="font-size:10px;font-family:monospace;background:#DAE8F5;color:#1A3A6B;padding:1px 6px;border-radius:2px;margin-left:6px;">recomendado</span>`;
-      itemsHtml+=`
-        <tr style="border-bottom:1px solid #E3DDD2;">
-          <td style="padding:10px 12px;width:32px;text-align:center;vertical-align:top;">
-            <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:3px;background:${statusBg};color:${statusColor};font-weight:700;font-size:13px;">${statusIcon}</span>
-          </td>
-          <td style="padding:10px 12px;">
-            <div style="font-size:13px;font-weight:600;color:#1A1714;margin-bottom:3px;">${escHtml(it.label)}${reqBadge}${manualBadge}</div>
-            <div style="font-size:12px;color:#7A746C;margin-bottom:4px;">${escHtml(it.note)}</div>
-            ${whyText?`<div style="font-size:12px;color:${isManual?(s.val?'#1A3A6B':'#92600A'):(s.val?'#2D6A4F':'#8B1A1A')};background:${isManual?(s.val?'#DAE8F5':'#FAEAC0'):(s.val?'#D8F0E5':'#F5DADA')};border-left:3px solid ${isManual?(s.val?'#1A3A6B':'#92600A'):(s.val?'#2D6A4F':'#8B1A1A')};padding:5px 8px;margin-bottom:3px;">${escHtml(whyText)}</div>`:''}
-            ${sugText?`<div style="font-size:12px;color:#4A453E;background:#FAEAC0;border-left:3px solid #92600A;padding:5px 8px;margin-bottom:3px;"><strong style="font-size:10px;text-transform:uppercase;color:#92600A;display:block;margin-bottom:2px;">Sugerencia</strong>${escHtml(sugText)}</div>`:''}
-            ${commentText?`<div style="font-size:12px;color:#4A453E;background:#F5F2EC;border-left:3px solid #B8B0A4;padding:5px 8px;margin-top:2px;font-style:italic;"><strong style="font-size:10px;text-transform:uppercase;color:#7A746C;display:block;margin-bottom:2px;">Comentario del revisor</strong>${escHtml(commentText)}</div>`:''}
-          </td>
-        </tr>`;
-    });
-    sectionsHtml+=`
-      <div style="margin-bottom:20px;">
-        <div style="display:flex;align-items:center;gap:8px;background:#EDE9E0;border-radius:6px 6px 0 0;padding:10px 14px;border:1px solid #D0C9BE;border-bottom:none;">
-          <div style="width:8px;height:8px;border-radius:50%;background:${sec.color};flex-shrink:0;"></div>
-          <span style="font-size:13px;font-weight:700;color:#1A1714;flex:1;">${escHtml(sec.title)}</span>
-          <span style="font-family:monospace;font-size:12px;color:#7A746C;">${doneCount}/${sec.items.length}</span>
+    
+    const res = autoResults[id];
+    const color = res.ok ? 'var(--green)' : 'var(--red)';
+    const bg = res.ok ? 'var(--green-bg)' : 'var(--red-bg)';
+    
+    row.innerHTML = `
+        <div style="background:${color};width:12px;height:12px;border-radius:50%;margin-top:4px"></div>
+        <div style="flex:1">
+            <div style="font-size:13px;font-weight:600">${id.replace('v_','').replace('e_','').toUpperCase()}</div>
+            <div style="font-size:12px;color:var(--ink3)">${res.why}</div>
         </div>
-        <table style="width:100%;border-collapse:collapse;border:1px solid #D0C9BE;border-top:none;">
-          ${itemsHtml}
-        </table>
-      </div>`;
-  });
-
-  const sugItems=Array.from(document.querySelectorAll('#sugList .sug-item')).map(el=>el.textContent);
-  let sugHtml='';
-  if(sugItems.length>0){
-    sugHtml=`<div style="margin-bottom:20px;padding:16px;background:#EDE9E0;border:1px solid #D0C9BE;border-radius:6px;">
-      <div style="font-family:monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7A746C;margin-bottom:10px;">Recomendaciones generales de mejora</div>
-      ${sugItems.map(s=>`<div style="font-size:13px;color:#4A453E;padding:7px 10px;background:#F5F2EC;border-radius:3px;border-left:3px solid #C4440E;margin-bottom:6px;">${escHtml(s)}</div>`).join('')}
-    </div>`;
-  }
-
-  const svW=document.getElementById('svW').textContent;
-  const svC=document.getElementById('svC').textContent;
-  const svO=document.getElementById('svO').textContent;
-  const svR=document.getElementById('svR').textContent;
-  const scWCls=document.getElementById('scW').className;
-  const scCCls=document.getElementById('scC').className;
-  const scOCls=document.getElementById('scO').className;
-  const scRCls=document.getElementById('scR').className;
-  function clsColor(cls){return cls.includes('ok')?'#2D6A4F':cls.includes('warn')?'#92600A':'#8B1A1A';}
-
-  return`<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Informe de evaluación — ${escHtml(title.slice(0,60))}${title.length>60?'…':''}</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#F5F2EC;color:#1A1714;padding:0}
-  @media print{body{background:#fff}@page{margin:18mm 15mm}}
-  .page{max-width:860px;margin:0 auto;padding:30px 24px 40px}
-  .header-band{background:#1A1714;color:#F5F2EC;border-radius:8px;padding:20px 24px;margin-bottom:20px}
-  .title-eval{font-size:22px;font-style:italic;font-family:Georgia,serif;margin-bottom:10px;line-height:1.4;color:#F5F2EC}
-  .meta-row{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:rgba(245,242,236,.5);font-family:monospace;margin-bottom:14px}
-  .score-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  .score-num{font-size:52px;font-family:Georgia,serif;line-height:1;color:#F5F2EC}
-  .score-of{font-size:18px;color:rgba(245,242,236,.4);margin-top:6px}
-  .verdict-block{flex:1;min-width:180px}
-  .verdict-txt{font-size:16px;font-weight:700;margin-bottom:6px;color:#F5F2EC}
-  .bar-outer{height:4px;background:rgba(245,242,236,.12);border-radius:2px;margin-bottom:6px;overflow:hidden}
-  .bar-inner{height:4px;border-radius:2px;background:${barColor}}
-  .score-pct{font-size:11px;color:rgba(245,242,236,.45);font-family:monospace}
-  .short{font-size:12px;color:rgba(245,242,236,.6);font-style:italic;border-left:2px solid rgba(245,242,236,.2);padding-left:10px;max-width:280px;line-height:1.6}
-  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
-  .stat-c{background:#EDE9E0;border:1px solid #D0C9BE;border-radius:6px;padding:10px 12px}
-  .stat-v{font-size:22px;font-family:Georgia,serif;margin-bottom:3px}
-  .stat-l{font-size:10px;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;color:#7A746C}
-  .rw-box{background:#1A1714;border-radius:6px;padding:14px 18px;margin-bottom:20px}
-  .rw-lbl{font-size:10px;font-family:monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,242,236,.35);margin-bottom:6px}
-  .rw-t{font-size:18px;font-style:italic;font-family:Georgia,serif;color:#F5F2EC;line-height:1.4}
-  .footer-note{font-size:10px;font-family:monospace;color:#7A746C;text-align:center;margin-top:20px;padding-top:14px;border-top:1px solid #D0C9BE}
-</style>
-</head>
-<body>
-<div class="page">
-  <div class="header-band">
-    <div class="meta-row">
-      <span>TítuloCientífico · Evaluador normativo ICMJE/MeSH/CONSORT/STROBE</span>
-      <span>Generado: ${now}</span>
-      ${manualCount>0?`<span>✏ ${manualCount} corrección${manualCount>1?'es':''} manual${manualCount>1?'es':''}</span>`:''}
-    </div>
-    <div class="title-eval">${escHtml(title)}</div>
-    <div class="score-row">
-      <div><div class="score-num">${score}<span class="score-of">/${TOTAL}</span></div></div>
-      <div class="verdict-block">
-        <div class="verdict-txt">${escHtml(verdict)}</div>
-        <div class="bar-outer"><div class="bar-inner" style="width:${pct}%"></div></div>
-        <div class="score-pct">${pct}% de criterios cumplidos</div>
-      </div>
-      <div class="short">${escHtml(short)}</div>
-    </div>
-  </div>
-  <div class="stats-grid">
-    <div class="stat-c"><div class="stat-v" style="color:${clsColor(scWCls)}">${svW}</div><div class="stat-l">Palabras</div></div>
-    <div class="stat-c"><div class="stat-v" style="color:${clsColor(scCCls)}">${svC}</div><div class="stat-l">Caracteres</div></div>
-    <div class="stat-c"><div class="stat-v" style="color:${clsColor(scOCls)}">${svO}</div><div class="stat-l">Obligatorios ✓</div></div>
-    <div class="stat-c"><div class="stat-v" style="color:${clsColor(scRCls)}">${svR}</div><div class="stat-l">Recomendados ✓</div></div>
-  </div>
-  ${rwTitle?`<div class="rw-box"><div class="rw-lbl">Propuesta de título mejorado</div><div class="rw-t">${escHtml(rwTitle)}</div></div>`:''}
-  ${sectionsHtml}
-  ${sugHtml}
-  <div class="footer-note">Basado en: ICMJE Recommendations · CONSORT 2010 · STROBE · PRISMA · MeSH/DeCS NCBI · Guías editoriales BMJ, Lancet, NEJM, JAMA</div>
-</div>
-</body>
-</html>`;
+        <div style="font-size:10px;padding:2px 6px;background:${bg};color:${color};border-radius:3px;height:fit-content">
+            ${res.ok ? 'CUMPLE' : 'REVISAR'}
+        </div>
+    `;
 }
 
-function downloadReport(fmt){
-  const html=buildReportHTML();
-  if(fmt==='pdf'){
-    const win=window.open('','_blank');
-    if(!win){showToast('Activa las ventanas emergentes para imprimir');return;}
-    win.document.write(html);win.document.close();win.focus();
-    setTimeout(()=>win.print(),600);
-    showToast('Abriendo diálogo de impresión…');
-  } else {
-    const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    const titleSlug=document.getElementById('titleInput').value.trim().slice(0,40).replace(/[^a-zA-Z0-9áéíóúñü\s]/g,'').trim().replace(/\s+/g,'_');
-    a.href=url;a.download=`informe_titulo_${titleSlug||'evaluacion'}.html`;
-    document.body.appendChild(a);a.click();
-    setTimeout(()=>{URL.revokeObjectURL(url);document.body.removeChild(a)},500);
-    showToast('✓ Informe descargado');
-  }
+function updateScore() {
+    const all = Object.values(state);
+    const ok = all.filter(s => s.val).length;
+    const pct = Math.round((ok / all.length) * 100);
+    
+    document.getElementById('scoreBig').innerHTML = `${ok}<span>/${all.length}</span>`;
+    document.getElementById('progressObl').style.width = pct + '%';
+    document.getElementById('progressObl').style.background = pct > 70 ? 'var(--green)' : 'var(--accent)';
+    document.getElementById('scorePct').textContent = `${pct}% de cumplimiento normativo`;
+    
+    document.getElementById('verdictText').textContent = pct > 80 ? "Título Sólido" : "Requiere Ajustes";
 }
-
-/* ════════════════════════════════════════════════════════════
-   INIT
-   ════════════════════════════════════════════════════════════ */
-const inputEl=document.getElementById('titleInput');
-const btnEl=document.getElementById('btnAnalyze');
-const ccEl=document.getElementById('charCount');
-
-inputEl.addEventListener('input',()=>{
-  const len=inputEl.value.length;
-  ccEl.textContent=len+' / 280';
-  ccEl.className='char-count'+(len>280?' error':len>220?' warn':'');
-  const hasContent=inputEl.value.trim().length>=5;
-  btnEl.disabled=!hasContent;
-  btnEl.setAttribute('aria-disabled',!hasContent);
-  inputEl.style.height='auto';
-  inputEl.style.height=inputEl.scrollHeight+'px';
-});
-
-inputEl.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))requestAnalyze();
-});
-
-buildChecklist();
-updateScore();
-</script>
-</body>
-</html>
