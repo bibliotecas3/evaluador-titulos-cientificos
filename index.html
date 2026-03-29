@@ -1,326 +1,217 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TítuloCientífico — Evaluador Vancouver, MeSH y ICMJE</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-/* ─── TOKENS & BASE ────────────────────────────────────────── */
-:root{
-  --bg:#F5F2EC;--bg2:#EDE9E0;--bg3:#E3DDD2;
-  --ink:#1A1714;--ink2:#4A453E;--ink3:#7A746C;
-  --accent:#C4440E;
-  --green:#2D6A4F;--green-bg:#D8F0E5;
-  --amber:#92600A;--amber-bg:#FAEAC0;
-  --red:#8B1A1A;--red-bg:#F5DADA;
-  --blue:#1A3A6B;--blue-bg:#DAE8F5;
-  --border:#D0C9BE;--border2:#B8B0A4;
-  --radius:4px;--radius-lg:8px;
-  --focus-ring:0 0 0 3px rgba(196,68,14,.25);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Instrument Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TítuloCientífico — Evaluador Vancouver e ICMJE</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F5F2EC; --bg2: #EDE9E0; --ink: #1A1714; --ink3: #7A746C;
+            --accent: #C4440E; --green: #2D6A4F; --green-bg: #D8F0E5;
+            --red: #8B1A1A; --red-bg: #F5DADA; --border: #D0C9BE;
+            --radius-lg: 8px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Instrument Sans', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; padding: 2rem; }
+        header { max-width: 900px; margin: 0 auto 2rem; display: flex; align-items: baseline; gap: 1rem; }
+        .logo { font-family: 'DM Serif Display', serif; font-size: 24px; }
+        .logo span { color: var(--accent); }
+        main { max-width: 900px; margin: 0 auto; }
+        
+        /* Input */
+        .title-input-wrap { position: relative; margin-bottom: 2rem; }
+        textarea { 
+            width: 100%; font-family: 'DM Serif Display', serif; font-size: 22px; 
+            background: transparent; border: none; border-bottom: 2px solid var(--ink); 
+            padding: 1rem 0; outline: none; resize: none; min-height: 80px;
+        }
+        .char-count { position: absolute; right: 0; bottom: -25px; font-family: 'DM Mono'; font-size: 12px; }
 
-/* ─── HEADER ─────────────────────────────────────────────── */
-header{border-bottom:1px solid var(--border);padding:1.5rem 2rem;display:flex;align-items:baseline;gap:1.5rem;background:var(--bg);position:sticky;top:0;z-index:100}
-.logo{font-family:'DM Serif Display',serif;font-size:20px;color:var(--ink)}.logo span{color:var(--accent)}
-.tagline{font-size:12px;color:var(--ink3);font-family:'DM Mono',monospace;letter-spacing:.05em}
+        /* Buttons */
+        .btn-analyze { 
+            background: var(--ink); color: var(--bg); border: none; padding: 12px 24px; 
+            border-radius: 4px; cursor: pointer; font-weight: 600; transition: 0.2s;
+        }
+        .btn-analyze:disabled { background: var(--border); cursor: not-allowed; opacity: 0.6; }
+        .btn-analyze:hover:not(:disabled) { background: var(--accent); }
 
-/* ─── LAYOUT ─────────────────────────────────────────────── */
-main{max-width:900px;margin:0 auto;padding:3rem 2rem 4rem}
+        /* Results */
+        #results { display: none; margin-top: 3rem; }
+        .score-panel { 
+            background: var(--ink); color: var(--bg); padding: 2rem; border-radius: var(--radius-lg);
+            display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: center; margin-bottom: 2rem;
+        }
+        .score-big { font-family: 'DM Serif Display'; font-size: 64px; }
+        .progress-bar { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin: 10px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.8s; }
 
-/* ─── INPUT AREA ─────────────────────────────────────────── */
-.input-label{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.10em;text-transform:uppercase;color:var(--ink3);margin-bottom:.5rem;display:block}
-.title-input-wrap{position:relative}
-textarea#titleInput{width:100%;font-family:'DM Serif Display',serif;font-size:22px;line-height:1.4;color:var(--ink);background:transparent;border:none;border-bottom:2px solid var(--ink);padding:.5rem 0 .75rem;resize:none;outline:none;min-height:70px;transition:border-color .2s;font-style:italic}
-textarea#titleInput:focus{border-bottom-color:var(--accent)}
-.char-count{position:absolute;right:0;bottom:-25px;font-size:12px;font-family:'DM Mono',monospace;color:var(--ink3)}
-.char-count.warn{color:var(--amber)}.char-count.error{color:var(--red)}
-
-/* ─── BUTTONS ────────────────────────────────────────────── */
-.ai-row{margin-top:2.5rem;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.btn-analyze{font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:600;background:var(--ink);color:var(--bg);border:none;padding:10px 22px;border-radius:var(--radius);cursor:pointer;transition:all .15s}
-.btn-analyze:hover:not(:disabled){background:var(--accent)}
-.btn-analyze:disabled{background:var(--border);cursor:not-allowed}
-.btn-clear{font-size:13px;color:var(--ink3);background:none;border:1px solid var(--border);padding:9px 16px;border-radius:var(--radius);cursor:pointer}
-
-/* ─── RESULTS & SCORE ────────────────────────────────────── */
-#results{display:none;opacity:0;transition:opacity .4s}
-#results.visible{display:block;opacity:1}
-.score-panel{background:var(--ink);color:var(--bg);border-radius:var(--radius-lg);padding:1.75rem 2rem;margin-bottom:2rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2rem}
-.score-big{font-family:'DM Serif Display',serif;font-size:64px;line-height:1}
-.score-big span{font-size:22px;color:rgba(245,242,236,.5);vertical-align:top;margin-top:8px;display:inline-block}
-.progress-outer{height:4px;background:rgba(245,242,236,.12);border-radius:2px;overflow:hidden;margin-bottom:6px;display:flex;gap:1px}
-.progress-obl{height:4px;transition:width .8s ease}
-.progress-rec{height:4px;background:rgba(245,242,236,.3);transition:width .8s ease}
-
-/* ─── CARDS & CHECKLIST ──────────────────────────────────── */
-.quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:2rem}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem}
-.stat-val{font-family:'DM Serif Display',serif;font-size:26px;line-height:1;margin-bottom:4px}
-.stat-lbl{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3);text-transform:uppercase}
-
-.section-wrap{margin-bottom:1.25rem;border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
-.section-head{display:flex;align-items:center;gap:10px;padding:.85rem 1.1rem;cursor:pointer;background:var(--bg2)}
-.item-row{display:flex;gap:12px;padding:.9rem 1.1rem;border-top:1px solid var(--border);background:var(--bg)}
-.item-row.hidden{display:none}
-
-/* ─── REWRITE BOX ────────────────────────────────────────── */
-.rewrite-box{background:var(--ink);border-radius:var(--radius-lg);padding:1.5rem 1.75rem;margin-bottom:2rem;display:none}
-.rewrite-box.show{display:block}
-.rw-label{font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,242,236,.4);text-transform:uppercase;margin-bottom:.5rem}
-.rw-title{font-family:'DM Serif Display',serif;font-size:20px;color:var(--bg);font-style:italic;margin-bottom:.75rem}
-
-/* ─── MODALS ─────────────────────────────────────────────── */
-.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(26,23,20,.6);z-index:500;align-items:center;justify-content:center}
-.modal-backdrop.open{display:flex}
-.modal{background:var(--bg);border-radius:var(--radius-lg);padding:1.75rem;max-width:400px;width:90%}
-.modal-btn-confirm{background:var(--red);color:#fff;border:none;padding:8px 16px;border-radius:var(--radius);cursor:pointer}
-
-/* Tooltips */
-.has-tooltip{position:relative}
-.tooltip-box{display:none;position:absolute;bottom:120%;left:0;background:var(--ink);color:#fff;padding:8px;font-size:12px;width:200px;border-radius:4px;z-index:10}
-.has-tooltip:hover .tooltip-box{display:block}
-
-@media(max-width:640px){
-  .score-panel{grid-template-columns:1fr;text-align:center}
-  .quick-stats{grid-template-columns:1fr 1fr}
-}
-</style>
+        .rewrite-box { background: var(--bg2); padding: 1.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border); margin-bottom: 2rem; }
+        .item-row { 
+            background: #fff; padding: 1rem; border-radius: 6px; margin-bottom: 0.5rem; 
+            border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
+        }
+        .badge { font-size: 10px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        
+        @media (max-width: 600px) { .score-panel { grid-template-columns: 1fr; text-align: center; } }
+    </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">TítuloCien<span>tífico</span></div>
-  <div class="tagline">Evaluador Vancouver · ICMJE · MeSH</div>
+    <div class="logo">TítuloCien<span>tífico</span></div>
+    <div style="font-family:'DM Mono'; font-size:12px; color:var(--ink3)">v2.0 Vancouver Edition</div>
 </header>
 
 <main>
-  <div style="margin-bottom:2.5rem">
-    <label class="input-label" for="titleInput">Título del artículo científico</label>
     <div class="title-input-wrap">
-      <textarea id="titleInput" placeholder="Ej: Efecto de la metformina en pacientes con diabetes: ensayo clínico..." spellcheck="false"></textarea>
-      <span class="char-count" id="charCount">0 / 280</span>
+        <textarea id="titleInput" placeholder="Escribe el título de tu investigación aquí..."></textarea>
+        <div id="charCount" class="char-count">0 / 280</div>
     </div>
-    <div class="ai-row">
-      <button class="btn-analyze" id="btnAnalyze" onclick="requestAnalyze()" disabled>Evaluar título</button>
-      <button class="btn-clear" onclick="requestClear()">Limpiar</button>
-    </div>
-  </div>
 
-  <div id="results">
-    <div class="score-panel">
-      <div class="score-big" id="scoreBig">0<span>/20</span></div>
-      <div>
-        <div id="verdictText" style="font-weight:600;margin-bottom:8px">—</div>
-        <div class="progress-outer">
-          <div class="progress-obl" id="progressObl" style="width:0%"></div>
-          <div class="progress-rec" id="progressRec" style="width:0%"></div>
+    <button id="btnAnalyze" class="btn-analyze" disabled>Evaluar título</button>
+    <button onclick="location.reload()" style="background:none; border:1px solid var(--border); padding:11px 20px; border-radius:4px; cursor:pointer; margin-left:10px">Limpiar</button>
+
+    <div id="results">
+        <div class="score-panel">
+            <div class="score-big" id="scoreBig">0/5</div>
+            <div>
+                <div id="verdictTitle" style="font-size:18px; font-weight:600; margin-bottom:5px">Analizando...</div>
+                <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+                <div id="scoreDesc" style="font-size:12px; color:var(--bg3); opacity:0.7">Criterios de Vancouver cumplidos</div>
+            </div>
         </div>
-        <div id="scorePct" style="font-size:12px;font-family:'DM Mono'">0% de criterios</div>
-      </div>
-      <div id="aiVerdict" style="font-size:13px;opacity:0.8;font-style:italic;max-width:250px">—</div>
-    </div>
 
-    <div class="quick-stats">
-      <div class="stat-card" id="scW"><div class="stat-val" id="svW">0</div><div class="stat-lbl">Palabras</div></div>
-      <div class="stat-card" id="scC"><div class="stat-val" id="svC">0</div><div class="stat-lbl">Caracteres</div></div>
-      <div class="stat-card" id="scO"><div class="stat-val" id="svO">0</div><div class="stat-lbl">Vancouver ✓</div></div>
-      <div class="stat-card" id="scR"><div class="stat-val" id="svR">0</div><div class="stat-lbl">MeSH/Rec. ✓</div></div>
-    </div>
+        <div class="rewrite-box">
+            <div style="font-family:'DM Mono'; font-size:11px; text-transform:uppercase; margin-bottom:8px; color:var(--ink3)">Sugerencia Estilo Vancouver</div>
+            <div id="vancouverTitle" style="font-family:'DM Serif Display'; font-size:20px; font-style:italic"></div>
+        </div>
 
-    <div class="rewrite-box" id="rwBox">
-      <div class="rw-label">Propuesta Estilo Vancouver / ICMJE</div>
-      <div class="rw-title" id="rwTitle"></div>
-      <div id="rwChanges" style="color:rgba(245,242,236,0.6);font-size:12px"></div>
+        <div id="checklist"></div>
     </div>
-
-    <div id="checklistContainer"></div>
-  </div>
 </main>
 
-<div class="modal-backdrop" id="modalConfirm">
-  <div class="modal">
-    <h3 style="margin-bottom:10px">¿Re-evaluar?</h3>
-    <p style="font-size:13px;margin-bottom:20px">Se perderán los comentarios y ajustes manuales actuales.</p>
-    <div style="display:flex;justify-content:flex-end;gap:10px">
-      <button onclick="closeModal('modalConfirm')" style="background:none;border:none;cursor:pointer">Cancelar</button>
-      <button class="modal-btn-confirm" onclick="confirmReanalyze()">Confirmar</button>
-    </div>
-  </div>
-</div>
-
 <script>
-/* ─── DATA & CRITERIA ────────────────────────────────────── */
-const CRITERIA = [
-  {id:"vancouver", title:"Normas de Vancouver e ICMJE", color:"#C4440E", items:[
-    {id:"v_start", label:"Inicio con palabra clave", note:"Evita artículos (El, La) al inicio según Vancouver.", req:true},
-    {id:"v_design", label:"Mención del diseño", note:"Debe figurar tras dos puntos (: ensayo clínico...).", req:true},
-    {id:"v_mesh", label:"Términos MeSH/DeCS", note:"Usa descriptores médicos normalizados.", req:true},
-    {id:"v_no_brand", label:"Sin nombres comerciales", note:"Usa DCI (Genéricos) exclusivamente.", req:true}
-  ]},
-  {id:"estructura", title:"Concisión y SEO", color:"#1A3A6B", items:[
-    {id:"e_length", label:"Longitud óptima (10-15 palabras)", note:"Máximo impacto en motores de búsqueda.", req:false},
-    {id:"e_chars", label:"Límite de 280 caracteres", note:"Evita el truncamiento en PubMed.", req:true}
-  ]}
-];
+    const input = document.getElementById('titleInput');
+    const btn = document.getElementById('btnAnalyze');
+    const resultsArea = document.getElementById('results');
 
-const state = {};
-const autoResults = {};
-CRITERIA.forEach(s => s.items.forEach(it => state[it.id] = {val:false, src:'auto', comment:''}));
+    // 1. Escuchar escritura para activar botón
+    input.addEventListener('input', () => {
+        const val = input.value.trim();
+        document.getElementById('charCount').textContent = `${val.length} / 280`;
+        
+        // El botón se activa con 5 caracteres o más
+        btn.disabled = val.length < 5;
+        
+        input.style.height = 'auto';
+        input.style.height = input.scrollHeight + 'px';
+    });
 
-/* ─── ENGINE ─────────────────────────────────────────────── */
-function engine(title) {
-  const words = title.trim().split(/\s+/);
-  const R = {};
-  
-  // Vancouver: Inicio con palabra clave
-  const startsWithArticle = /^(El|La|Los|Las|Un|Una|The|A|An)\b/i.test(title);
-  R.v_start = {ok: !startsWithArticle, why: startsWithArticle ? "Vancouver recomienda empezar por el sustantivo clínico, no por artículos." : "Correcto: El título inicia con una palabra con carga informativa."};
+    // 2. Función principal de evaluación
+    btn.addEventListener('click', () => {
+        const text = input.value.trim();
+        if(!text) return;
 
-  // Vancouver: Diseño al final
-  const hasDesign = /:\s*(ensayo|estudio|revisión|metaanálisis|ECA|cohortes|transversal)/i.test(title);
-  R.v_design = {ok: hasDesign, why: hasDesign ? "Diseño correctamente identificado tras dos puntos." : "Vancouver e ICMJE exigen incluir el diseño del estudio en el título."};
+        btn.textContent = "Evaluando...";
+        btn.disabled = true;
 
-  // Vancouver: Sin marcas
-  const hasBrand = /\b(Prozac|Viagra|Advil|Tylenol|Lipitor)\b/i.test(title);
-  R.v_no_brand = {ok: !hasBrand, why: hasBrand ? "Se detectó un nombre comercial. Usa solo genéricos (DCI)." : "No se detectaron marcas comerciales."};
+        // Simular pequeño retraso para feedback visual
+        setTimeout(() => {
+            const analysis = evaluateVancouver(text);
+            displayResults(analysis, text);
+            
+            btn.textContent = "Volver a evaluar";
+            btn.disabled = false;
+        }, 400);
+    });
 
-  // Estructura
-  R.e_length = {ok: words.length >= 10 && words.length <= 15, why: `Longitud de ${words.length} palabras.`};
-  R.e_chars = {ok: title.length <= 280, why: "Dentro del límite de PubMed."};
-  
-  // MeSH Local (Simulado)
-  const hasMesh = /\b(diabetes|hipertensión|cáncer|infarto|depresión|vacuna|covid|terapia)\b/i.test(title.toLowerCase());
-  R.v_mesh = {ok: hasMesh, why: hasMesh ? "Términos MeSH detectados." : "Intenta usar descriptores estándar de la NLM."};
+    function evaluateVancouver(t) {
+        const words = t.split(/\s+/).filter(Boolean);
+        const criteria = [
+            {
+                id: 1,
+                label: "Sin artículos iniciales",
+                ok: !/^(El|La|Los|Las|Un|Una|The|A|An)\b/i.test(t),
+                desc: "Vancouver prefiere empezar con la palabra clave (ej: 'Diabetes' en lugar de 'La diabetes')."
+            },
+            {
+                id: 2,
+                label: "Diseño de estudio explícito",
+                ok: /:\s*(ensayo|estudio|revisión|metaanálisis|ECA|cohorte|transversal)/i.test(t),
+                desc: "Incluye el diseño tras dos puntos (ej: ': ensayo clínico aleatorizado')."
+            },
+            {
+                id: 3,
+                label: "Uso de términos MeSH",
+                ok: /\b(diabetes|hipertensión|infarto|cáncer|terapia|vacuna|tratamiento|prevención)\b/i.test(t.toLowerCase()),
+                desc: "Utiliza términos normalizados de salud."
+            },
+            {
+                id: 4,
+                label: "Concisión Vancouver",
+                ok: words.length >= 8 && words.length <= 15,
+                desc: "El rango ideal es de 10 a 15 palabras para indexación."
+            },
+            {
+                id: 5,
+                label: "Sin marcas comerciales",
+                ok: !/\b(Prozac|Viagra|Advil|Tylenol|Lipitor|Voltaren)\b/i.test(t),
+                desc: "Usa siempre el nombre genérico (DCI) de los fármacos."
+            }
+        ];
 
-  return {R, meta: {wc: words.length, cc: title.length}};
-}
-
-/* ─── VANCOUVER REWRITE ──────────────────────────────────── */
-function vancouverRewrite(title) {
-  let t = title.trim().replace(/^(El|La|Los|Las|Un|Una|The|A|An)\s+/i, '');
-  t = t.charAt(0).toUpperCase() + t.slice(1);
-  
-  // Re-ordenar: Efecto de X en Y -> Y: efecto de X
-  const effectPattern = /^(Efectos?|Impacto|Eficacia)\s+de\s+(.+?)\s+en\s+(.+)$/i;
-  const match = t.match(effectPattern);
-  if (match) {
-    t = `${match[3].trim()}: ${match[1].toLowerCase()} de ${match[2].trim()}`;
-  }
-  
-  if (!t.includes(':')) t += " [ : especificar diseño ]";
-  return t;
-}
-
-/* ─── CORE FUNCTIONS ─────────────────────────────────────── */
-async function fetchMeshFromNLM(title) {
-    const row = document.getElementById('row-v_mesh');
-    if (!row) return;
-    
-    // Uso de AbortController para evitar errores de red infinitos
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000);
-
-    try {
-        const firstWord = title.split(' ')[0].replace(/[^a-zA-Z]/g, '');
-        const r = await fetch(`https://id.nlm.nih.gov/mesh/lookup/term?label=${firstWord}&match=contains&limit=1`, { signal: controller.signal });
-        if (r.ok) {
-            autoResults.v_mesh.ok = true;
-            autoResults.v_mesh.why = "✓ Validado contra la API de la NLM MeSH.";
-            renderItem('v_mesh');
-            updateScore();
-        }
-    } catch (e) {} finally { clearTimeout(timeout); }
-}
-
-function requestAnalyze() {
-  if (Object.keys(autoResults).length > 0) {
-    openModal('modalConfirm');
-  } else {
-    doAnalyze();
-  }
-}
-
-function doAnalyze() {
-  const title = document.getElementById('titleInput').value.trim();
-  if (title.length < 5) return;
-
-  const btn = document.getElementById('btnAnalyze');
-  btn.disabled = true;
-  btn.textContent = "Analizando...";
-
-  setTimeout(() => {
-    const {R, meta} = engine(title);
-    Object.assign(autoResults, R);
-    
-    // Aplicar resultados
-    CRITERIA.forEach(s => s.items.forEach(it => {
-        state[it.id].val = R[it.id].ok;
-        renderItem(it.id);
-    }));
-
-    // Estadísticas
-    document.getElementById('svW').textContent = meta.wc;
-    document.getElementById('svC').textContent = meta.cc;
-    
-    // Propuesta Vancouver
-    document.getElementById('rwTitle').textContent = vancouverRewrite(title);
-    document.getElementById('rwBox').classList.add('show');
-
-    // UI Final
-    const res = document.getElementById('results');
-    res.style.display = 'block';
-    setTimeout(() => {
-        res.classList.add('visible');
-        res.scrollIntoView({behavior:'smooth'});
-        btn.disabled = false;
-        btn.textContent = "Re-evaluar";
-    }, 100);
-
-    updateScore();
-    fetchMeshFromNLM(title);
-  }, 400);
-}
-
-function renderItem(id) {
-    const container = document.getElementById('checklistContainer');
-    let row = document.getElementById('row-' + id);
-    
-    if (!row) {
-        row = document.createElement('div');
-        row.id = 'row-' + id;
-        row.className = 'item-row';
-        container.appendChild(row);
+        return criteria;
     }
-    
-    const res = autoResults[id];
-    const color = res.ok ? 'var(--green)' : 'var(--red)';
-    const bg = res.ok ? 'var(--green-bg)' : 'var(--red-bg)';
-    
-    row.innerHTML = `
-        <div style="background:${color};width:12px;height:12px;border-radius:50%;margin-top:4px"></div>
-        <div style="flex:1">
-            <div style="font-size:13px;font-weight:600">${id.replace('v_','').replace('e_','').toUpperCase()}</div>
-            <div style="font-size:12px;color:var(--ink3)">${res.why}</div>
-        </div>
-        <div style="font-size:10px;padding:2px 6px;background:${bg};color:${color};border-radius:3px;height:fit-content">
-            ${res.ok ? 'CUMPLE' : 'REVISAR'}
-        </div>
-    `;
-}
 
-function updateScore() {
-    const all = Object.values(state);
-    const ok = all.filter(s => s.val).length;
-    const pct = Math.round((ok / all.length) * 100);
-    
-    document.getElementById('scoreBig').innerHTML = `${ok}<span>/${all.length}</span>`;
-    document.getElementById('progressObl').style.width = pct + '%';
-    document.getElementById('progressObl').style.background = pct > 70 ? 'var(--green)' : 'var(--accent)';
-    document.getElementById('scorePct').textContent = `${pct}% de cumplimiento normativo`;
-    
-    document.getElementById('verdictText').textContent = pct > 80 ? "Título Sólido" : "Requiere Ajustes";
-}
+    function displayResults(data, originalTitle) {
+        const checklist = document.getElementById('checklist');
+        checklist.innerHTML = "";
+        
+        let score = 0;
+        data.forEach(item => {
+            if(item.ok) score++;
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <div>
+                    <div style="font-weight:600; font-size:14px">${item.label}</div>
+                    <div style="font-size:12px; color:var(--ink3)">${item.desc}</div>
+                </div>
+                <span class="badge" style="background:${item.ok ? 'var(--green-bg)' : 'var(--red-bg)'}; color:${item.ok ? 'var(--green)' : 'var(--red)'}">
+                    ${item.ok ? '✓ Cumple' : '✕ Revisar'}
+                </span>
+            `;
+            checklist.appendChild(row);
+        });
+
+        // Actualizar Panel de Puntuación
+        const pct = (score / data.length) * 100;
+        document.getElementById('scoreBig').textContent = `${score}/${data.length}`;
+        document.getElementById('progressFill').style.width = `${pct}%`;
+        document.getElementById('verdictTitle').textContent = score >= 4 ? "Título de Alta Calidad" : "Necesita Optimización";
+        
+        // Generar propuesta Vancouver
+        document.getElementById('vancouverTitle').textContent = generateVancouverSuggestion(originalTitle);
+
+        // Mostrar sección de resultados
+        resultsArea.style.display = 'block';
+        resultsArea.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function generateVancouverSuggestion(t) {
+        // Limpiar artículos iniciales
+        let s = t.trim().replace(/^(El|La|Los|Las|Un|Una|The|A|An)\s+/i, '');
+        s = s.charAt(0).toUpperCase() + s.slice(1);
+
+        // Si no tiene diseño, añadir sugerencia
+        if (!s.includes(':')) {
+            s += ": [añadir diseño del estudio]";
+        }
+        
+        return s;
+    }
+</script>
+
+</body>
+</html>
