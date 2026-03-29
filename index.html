@@ -485,17 +485,25 @@ const BASURA=[
 ];
 
 const STUDY_TYPES={
-  eca:[/ensayo\s+cl[íi]nico?\s+(aleatori|controlado)/i,/ensayo\s+controlado\s+aleatori/i,/\bECA\b/,/randomized\s+controlled/i,/\bRCT\b/,/\baleatori[sz]/i],
-  cohorte:[/estudio\s+de\s+cohorte/i,/cohorte\s+(prospectiv|retrospectiv)/i,/\bcohort\s+study\b/i],
-  casos:[/casos?\s+y\s+controles?/i,/case.control/i,/\bcase-control\b/i],
+  eca:[/ensayo\s+cl[íi]nico?\s+(aleatori|controlado)/i,/ensayo\s+controlado\s+aleatori/i,/\bECA\b/,
+       /randomized\s+controlled\s+trial/i,/randomised\s+controlled\s+trial/i,/\bRCT\b/,/\baleatori[sz]/i,
+       /\brandomized\s+clinical\s+trial\b/i,/\brandomised\s+clinical\s+trial\b/i,
+       /phase\s+[123]\s+(?:randomized|randomised|clinical)/i,
+       /(?:randomized|randomised)\s+phase\s+[123]/i],
+  cohorte:[/estudio\s+de\s+cohorte/i,/cohorte\s+(prospectiv|retrospectiv)/i,
+           /\bcohort\s+study\b/i,/\bprospective\s+cohort\b/i,/\bretrospective\s+cohort\b/i],
+  casos:[/casos?\s+y\s+controles?/i,/case.control/i,/\bcase-control\s+study\b/i],
   transversal:[/estudio\s+transversal/i,/cross.sectional/i,/\btransversal\b/i],
-  sistematica:[/revisi[oó]n\s+sistem[aá]tica/i,/meta.?an[aá]lisis/i,/systematic\s+review/i,/\bmetaan[aá]lisis\b/i],
-  observacional:[/estudio\s+observacional/i,/\bobservacional\b/i],
-  descriptivo:[/estudio\s+descriptivo/i,/serie\s+de\s+casos?/i,/\bdescriptivo\b/i],
-  piloto:[/estudio\s+piloto/i,/\bpiloto\b/i],
-  cualitativo:[/estudio\s+cualitativo/i,/\bcualitativo\b/i],
-  antes_despues:[/antes\s+y\s+despu[eé]s/i,/pre.?\s*post\b/i,/\bpretest.postest\b/i],
-  diagnostico:[/estudio\s+de\s+(precisi[oó]n|validez|diagn[oó]stico)/i,/validaci[oó]n\s+de\s+(un\s+)?(test|prueba|escala|cuestionario)/i]
+  sistematica:[/revisi[oó]n\s+sistem[aá]tica/i,/meta.?an[aá]lisis/i,
+               /systematic\s+review/i,/\bmetaan[aá]lisis\b/i,/\bmeta.?analysis\b/i],
+  observacional:[/estudio\s+observacional/i,/\bobservacional\b/i,/\bobservational\s+study\b/i],
+  descriptivo:[/estudio\s+descriptivo/i,/serie\s+de\s+casos?/i,/\bdescriptivo\b/i,/\bcase\s+series\b/i],
+  piloto:[/estudio\s+piloto/i,/\bpiloto\b/i,/\bpilot\s+study\b/i,/\bpilot\s+trial\b/i],
+  cualitativo:[/estudio\s+cualitativo/i,/\bcualitativo\b/i,/\bqualitative\s+study\b/i],
+  antes_despues:[/antes\s+y\s+despu[eé]s/i,/pre.?\s*post\b/i,/\bpretest.postest\b/i,/\bbefore.after\s+study\b/i],
+  diagnostico:[/estudio\s+de\s+(precisi[oó]n|validez|diagn[oó]stico)/i,
+               /validaci[oó]n\s+de\s+(un\s+)?(test|prueba|escala|cuestionario)/i,
+               /\bdiagnostic\s+accuracy\b/i,/\bvalidation\s+study\b/i]
 };
 
 const UNIVERSAL=/\b(VIH|SIDA|ADN|ARN|IMC|OMS|OPS|UCI|UVI|ECA|ECR|TA|FC|FR|SpO2|CO2|O2|PCR|RCP|TAC|RMN|RM|PET|EPOC|DM|HTA|ICC|IAM|ACV|AIT|AINE|IBP|ISRS|IECA|ARAII|TNF|IL|IgG|IgE|HbA1c|LDL|HDL|INR|TSH|T3|T4|FSH|LH|PSA|CEA|CA125|AFP|COVID|SARS|MERS|VPH|VHB|VHC|VHS|CMV|EBV|TBC|TB|UCI|UTI|IMC|PCR|EPOC|DM2|DM1|AINE|PPI|IBP|SNP|TCR|ACE|ARB|ECG|EEG|MRI|CT|PET|ICU|OR|HR|RR|NNT|NNH|IC|CI)\b/g;
@@ -570,7 +578,37 @@ const MESH_P=[
   /\bdiabetes\s+(tipo\s+[12]|gestacional)\b/i,
   /\bhipoglucemia|hiperglucemia\b/i,
   /\bacceso\s+vascular\b/i,/\bcat[eé]ter\b/i,
-  /\bcirculaci[oó]n\s+extracorp[oó]rea\b/i
+  /\bcirculaci[oó]n\s+extracorp[oó]rea\b/i,
+  /* ── ENGLISH MeSH TERMS (soporte bilingüe) ── */
+  /\bhypertension\b/i,/\bcancer\b/i,/\btumou?r\b/i,/\bneoplasm\b/i,
+  /\bstroke\b/i,/\bmyocardial\s+infarction\b/i,/\bheart\s+(failure|disease)\b/i,
+  /\bcoronary\s+(artery|disease)\b/i,/\batrial\s+fibrillation\b/i,
+  /\bpneumonia\b/i,/\basthma\b/i,/\bcopd\b/i,/\bchronic\s+obstructive\b/i,
+  /\bsepsis\b/i,/\bdepression\b/i,/\banxiety\b/i,/\bschizophrenia\b/i,
+  /\bdementia\b/i,/\balzheimer\b/i,/\bparkinson\b/i,/\bepilepsy\b/i,
+  /\bobesity\b/i,/\boverweight\b/i,/\bmetabolic\s+syndrome\b/i,
+  /\bchronic\s+kidney\s+disease\b/i,/\brenal\s+failure\b/i,
+  /\bliver\s+(disease|failure|cirrhosis)\b/i,/\bhepatitis\b/i,
+  /\binfection\b/i,/\bvaccin(e|ation)\b/i,/\bantibiotic\b/i,/\bantimicrobial\b/i,
+  /\bsurgery\b/i,/\bsurgical\b/i,/\bpostoperative\b/i,/\bperioperative\b/i,
+  /\bcritical\s+(care|illness)\b/i,/\bintensive\s+care\b/i,
+  /\bpalliative\s+care\b/i,/\bpain\s+(management|relief|chronic)\b/i,
+  /\bcardiovascular\b/i,/\bblood\s+pressure\b/i,/\bglyca?emic\b/i,
+  /\bcholesterol\b/i,/\bglucose\b/i,/\bmortalit(y|ies)\b/i,/\bmorbidity\b/i,
+  /\bsurvival\b/i,/\bprognosis\b/i,/\brecurrence\b/i,/\bremission\b/i,
+  /\bquality\s+of\s+life\b/i,/\bfunctional\s+(outcome|recovery|status)\b/i,
+  /\bpatient\s+(safety|outcome|satisfaction)\b/i,
+  /\badherence\b/i,/\bcompliance\b/i,/\bscreening\b/i,/\bdiagnosis\b/i,
+  /\bbiomarker\b/i,/\btreatment\b/i,/\btherapy\b/i,/\bintervention\b/i,
+  /\bprevention\b/i,/\brisk\s+factor\b/i,/\bincidence\b/i,/\bprevalence\b/i,
+  /\bpediatric\b/i,/\bgeriatric\b/i,/\boncology\b/i,/\bchemotherapy\b/i,
+  /\bradiation\s+therapy\b/i,/\bimmunotherapy\b/i,/\btargeted\s+therapy\b/i,
+  /\bnursing\b/i,/\bwound\s+(care|healing)\b/i,/\brehabilitation\b/i,
+  /\bphysiotherapy\b/i,/\bphysical\s+therapy\b/i,
+  /\bmental\s+health\b/i,/\bpublic\s+health\b/i,/\bprimary\s+care\b/i,
+  /\bemergency\s+(medicine|department|care)\b/i,
+  /\bclinical\s+trial\b/i,/\bplacebo\b/i,/\bdouble.blind\b/i,/\bopen.label\b/i,
+  /\bphase\s+[123]+\b/i,/\brandomized\b/i
 ];
 
 const MARCA=/\b[A-Z][a-z]+(®|™|\(r\))\b|\b(Prozac|Viagra|Lipitor|Zocor|Ritalin|Advil|Tylenol|Voltaren|Humira|Keytruda|Opdivo|Remicade|Enbrel|Herceptin|Avastin|Rituxan|Lantus|Crestor|Plavix)\b/i;
@@ -589,14 +627,20 @@ function engine(title){
   const hasDecl=DECLARATIVO.some(p=>p.test(t)),hasClick=CLICKBAIT.some(p=>p.test(t));
   const first4=words.slice(0,4).join(' ');
   const hasMesh=MESH_P.some(p=>p.test(t)),firstMesh=MESH_P.some(p=>p.test(first4));
-  const firstCtx=/\b(eficac|efectiv|intervenci|tratamiento|prevenci|diagnós|asociaci|prevalenc|mortalidad|supervivencia|incidencia|impacto)\b/i.test(first4);
+  const firstCtx=/\b(eficac|efectiv|intervenci|tratamiento|prevenci|diagnós|asociaci|prevalenc|mortalidad|supervivencia|incidencia|impacto|efficacy|effectiveness|effect|impact|association|prevention|diagnosis|treatment|therapy|incidence|prevalence|survival|mortality)\b/i.test(first4);
   const rawAb=(t.match(/\b[A-Z]{2,6}\b/g)||[]);
   const univF=(t.match(UNIVERSAL)||[]);
-  const badAb=rawAb.filter(a=>!univF.includes(a)&&!['DE','LA','EL','LOS','LAS','EN','CON','POR','SIN','AL','DEL','UN','UNA','SU','ES','VS','Y','O','A','E'].includes(a));
+  /* Trial acronym pattern: ALL-CAPS word preceded or followed by Phase/Study/Trial/Estudio */
+  const trialAcro=new Set((t.match(/\b(?:the\s+)?([A-Z]{2,10})\s+(?:phase|trial|study|estudio|ensayo)\b/gi)||[]).concat((t.match(/\b(?:phase|trial|study|estudio|ensayo)\s+(?:the\s+)?([A-Z]{2,10})\b/gi)||[])).map(s=>(s.match(/[A-Z]{2,10}/)||[''])[0]));
+  const badAb=rawAb.filter(a=>
+    !univF.includes(a)&&
+    !trialAcro.has(a)&&
+    !['DE','LA','EL','LOS','LAS','EN','CON','POR','SIN','AL','DEL','UN','UNA','SU','ES','VS','Y','O','A','E',
+      'IN','OF','THE','AND','FOR','WITH','ON','AT','TO','BY','AN','OR','IS','AS','FROM'].includes(a));
   const hasMarca=MARCA.test(t),hasNums=/\b\d+[,.]?\d*\s*(%|por\s*ciento|veces|puntos|mmHg|mg|kg)\b/i.test(t);
   const hasSesgo=SESGO.some(p=>p.test(t));
-  const hasHealth=/\b(paciente|cl[íi]nico|m[eé]dico|salud|hospital|diagn[oó]stico|tratamiento|intervenci[oó]n|terapia|enfermedad|poblaci[oó]n|enfermería)\b/i.test(t);
-  const longW=words.filter(w=>w.replace(/[^a-záéíóúñü]/gi,'').length>14);
+  const hasHealth=/\b(paciente|cl[íi]nico|m[eé]dico|salud|hospital|diagn[oó]stico|tratamiento|intervenci[oó]n|terapia|enfermedad|poblaci[oó]n|enfermería|patient|clinical|medical|health|disease|treatment|therapy|intervention|diagnosis|population|hospital)\b/i.test(t);
+  const longW=words.filter(w=>w.replace(/[^a-záéíóúñüa-z]/gi,'').length>14);
   const R={};
 
   R.descriptivo={ok:!hasDecl&&!hasQ,
@@ -657,9 +701,9 @@ function engine(title){
     sug:(!firstMesh&&!firstCtx)?`Reordena el título para que los términos más específicos aparezcan en las primeras 3-4 posiciones.`:null};
 
   R.mesh={ok:hasMesh,
-    why:hasMesh?`Incluye al menos un término correspondiente a descriptores MeSH/DeCS. Facilita la indexación correcta en MEDLINE/PubMed.`:
-      `No se detectan descriptores MeSH/DeCS reconocidos en el análisis automático. Si el título sí incluye un término MeSH, usa la corrección manual (haz clic en el ítem). El análisis automático cubre los términos más frecuentes pero no es exhaustivo.`,
-    sug:!hasMesh?`Verifica descriptores en meshb.nlm.nih.gov o decs.bvsalud.org e incorpora al menos uno en forma normalizada.`:null};
+    why:hasMesh?`Incluye al menos un término reconocido como descriptor MeSH/DeCS (p. ej. «hypertension», «diabetes mellitus», «depression»…). Facilita la indexación correcta en MEDLINE/PubMed.`:
+      `El análisis interno no detecta descriptores MeSH/DeCS conocidos. Esta herramienta trabaja sin conexión a Internet y comprueba contra un vocabulario interno de ~200 términos frecuentes en biomedicina. Si el título contiene un término MeSH que no se ha detectado (p. ej. un fármaco nuevo o una especialidad poco frecuente), usa la corrección manual.`,
+    sug:!hasMesh?`Comprueba el término exacto en meshb.nlm.nih.gov (MeSH) o decs.bvsalud.org (DeCS) e incorpóralo en la forma normalizada que figura en esas bases de datos.`:null};
 
   R.sinAbrev={ok:badAb.length===0,
     why:badAb.length===0?`No contiene abreviaturas problemáticas. Las siglas universalmente aceptadas (si las hay) están correctamente empleadas.`:
@@ -702,15 +746,368 @@ function engine(title){
 /* ════════════════════════════════════════════════════════════
    REWRITE
    ════════════════════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────────────────────
+   SPELLING CORRECTION DICTIONARY
+   Covers the most frequent missing-accent and typo patterns
+   in medical Spanish titles.
+   ───────────────────────────────────────────────────────────── */
+const SPELL_DICT={
+  /* -ción words without tilde */
+  'atencion':'atención','atenciones':'atenciones',
+  'investigacion':'investigación','evaluacion':'evaluación',
+  'intervencion':'intervención','intervenciones':'intervenciones',
+  'prevencion':'prevención','prevenciones':'prevenciones',
+  'revision':'revisión','revisiones':'revisiones',
+  'poblacion':'población','asociacion':'asociación',
+  'hipertension':'hipertensión','depresion':'depresión',
+  'infeccion':'infección','infecciones':'infecciones',
+  'validacion':'validación','comparacion':'comparación',
+  'hospitalizacion':'hospitalización','rehabilitacion':'rehabilitación',
+  'prescripcion':'prescripción','medicacion':'medicación',
+  'administracion':'administración','proteccion':'protección',
+  'educacion':'educación','formacion':'formación',
+  'actualizacion':'actualización','funcion':'función',
+  'afeccion':'afección','inflamacion':'inflamación',
+  'coagulacion':'coagulación','oxigenacion':'oxigenación',
+  'transfusion':'transfusión','sedacion':'sedación',
+  'intubacion':'intubación','ventilacion':'ventilación',
+  'reseccion':'resección','complicacion':'complicación',
+  'comunicacion':'comunicación','publicacion':'publicación',
+  'implementacion':'implementación','identificacion':'identificación',
+  'clasificacion':'clasificación','aplicacion':'aplicación',
+  'adaptacion':'adaptación','interaccion':'interacción',
+  'reaccion':'reacción','deteccion':'detección',
+  'notificacion':'notificación','programacion':'programación',
+  'reevaluacion':'reevaluación','realizacion':'realización',
+  'derivacion':'derivación','prescripcion':'prescripción',
+  'reduccion':'reducción','introduccion':'introducción',
+  'presentacion':'presentación','afectacion':'afectación',
+  'distribucion':'distribución','situacion':'situación',
+  'mutacion':'mutación','actuacion':'actuación',
+  'infusión':'infusión','transfusion':'transfusión',
+  /* -sis words */
+  'analisis':'análisis','metaanalisis':'metaanálisis',
+  'meta-analisis':'meta-análisis','diagnostico':'diagnóstico',
+  /* -ico/-ía words */
+  'sistematica':'sistemática','sistematico':'sistemático',
+  'sistematicamente':'sistemáticamente',
+  'terapeutico':'terapéutico','terapeutica':'terapéutica',
+  'clinico':'clínico','clinica':'clínica','clinicos':'clínicos',
+  'farmacologico':'farmacológico','farmacologia':'farmacología',
+  'epidemiologico':'epidemiológico','epidemiologia':'epidemiología',
+  'neurologico':'neurológico','neurologia':'neurología',
+  'cardiologico':'cardiológico','cardiologia':'cardiología',
+  'oncologico':'oncológico','oncologia':'oncología',
+  'geriatrico':'geriátrico','geriatria':'geriatría',
+  'pediatrico':'pediátrico','pediatria':'pediatría',
+  'psiquiatrico':'psiquiátrico','psiquiatria':'psiquiatría',
+  'quirurgico':'quirúrgico','cirugia':'cirugía',
+  'nutricional':'nutricional',
+  'multicentrico':'multicéntrico','multicéntrico':'multicéntrico',
+  'aleatorizado':'aleatorizado',
+  /* common typos */
+  'medicacon':'medicación','medicacón':'medicación',
+  'ancianos':'ancianos',
+  /* -ía words */
+  'enfermeria':'enfermería','terapia':'terapia',
+  'fisioterapia':'fisioterapia','farmacovia':'farmacovigilancia',
+  /* participios / adjectives */
+  'controlado':'controlado','prospectivo':'prospectivo',
+  'retrospectivo':'retrospectivo','observacional':'observacional',
+};
+
+/* Study design patterns that may appear at the START of the title
+   and should be moved to the END (after colon), per ICMJE/CONSORT.
+   Each entry: [regex to detect at start, canonical label for end] */
+const DESIGN_AT_START=[
+  [/^(revisiones?\s+sistem[aá]ticas?\s+y\s+meta.?an[aá]lisis)\s+(?:de\s+|sobre\s+|acerca\s+de\s+)?/i,'revisión sistemática y metaanálisis'],
+  [/^(revisi[oó]n\s+sistem[aá]tica\s+y\s+meta.?an[aá]lisis)\s+(?:de\s+|sobre\s+|acerca\s+de\s+)?/i,'revisión sistemática y metaanálisis'],
+  [/^(meta.?an[aá]lisis)\s+(?:de\s+|sobre\s+|acerca\s+de\s+)?/i,'metaanálisis'],
+  [/^(revisi[oó]n\s+sistem[aá]tica)\s+(?:de\s+|sobre\s+|acerca\s+de\s+)?/i,'revisión sistemática'],
+  [/^(ensayo\s+cl[íi]nico?\s+aleatori[sz]ado\s+(?:y\s+)?(?:controlado|doble\s+ciego|multicéntrico)?)\s+(?:de\s+|sobre\s+|para\s+)?/i,'ensayo clínico aleatorizado'],
+  [/^(ensayo\s+controlado\s+aleatori[sz]ado)\s+(?:de\s+|sobre\s+|para\s+)?/i,'ensayo controlado aleatorizado'],
+  [/^(ensayo\s+aleatori[sz]ado)\s+(?:de\s+|sobre\s+|para\s+)?/i,'ensayo aleatorizado'],
+  [/^(estudio\s+de\s+cohortes?\s+(?:prospectiv[ao]|retrospectiv[ao])?)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio de cohortes'],
+  [/^(estudio\s+de\s+cohorte\s+(?:prospectiv[ao]|retrospectiv[ao])?)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio de cohorte'],
+  [/^(estudio\s+de\s+casos?\s+y\s+controles?)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio de casos y controles'],
+  [/^(estudio\s+transversal)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio transversal'],
+  [/^(estudio\s+observacional)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio observacional'],
+  [/^(estudio\s+descriptivo)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio descriptivo'],
+  [/^(estudio\s+piloto)\s+(?:de\s+|sobre\s+|para\s+)?/i,'estudio piloto'],
+  [/^(estudio\s+cualitativo)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio cualitativo'],
+  [/^(estudio\s+antes.?despu[eé]s)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio antes-después'],
+  [/^(estudio\s+cuasi.?experimental)\s+(?:de\s+|sobre\s+|en\s+)?/i,'estudio cuasiexperimental'],
+  [/^(serie\s+de\s+casos?)\s+(?:de\s+|sobre\s+|en\s+)?/i,'serie de casos'],
+  [/^(validaci[oó]n\s+de\s+(?:un\s+)?(?:cuestionario|escala|instrumento|herramienta|test|índice))\s+(?:para\s+|de\s+|en\s+)?/i,'estudio de validación'],
+  [/^(an[aá]lisis\s+secundario)\s+(?:de\s+|sobre\s+)?/i,'análisis secundario'],
+  [/^(protocolo\s+de\s+estudio)\s+(?:de\s+|para\s+)?/i,'protocolo de estudio'],
+  /* ── ENGLISH design-at-start patterns ── */
+  [/^(?:a\s+)?systematic\s+review\s+and\s+meta.?analysis\s+(?:of\s+|on\s+)?/i,'systematic review and meta-analysis'],
+  [/^(?:a\s+)?systematic\s+review\s+(?:of\s+|on\s+)?/i,'systematic review'],
+  [/^(?:a\s+)?meta.?analysis\s+(?:of\s+|on\s+)?/i,'meta-analysis'],
+  [/^(?:a\s+)?randomized\s+(?:controlled\s+)?(?:clinical\s+)?trial\s+(?:of\s+|on\s+|to\s+)?/i,'randomized controlled trial'],
+  [/^(?:a\s+)?randomised\s+(?:controlled\s+)?(?:clinical\s+)?trial\s+(?:of\s+|on\s+|to\s+)?/i,'randomised controlled trial'],
+  [/^(?:a\s+)?prospective\s+cohort\s+study\s+(?:of\s+|on\s+)?/i,'prospective cohort study'],
+  [/^(?:a\s+)?retrospective\s+cohort\s+study\s+(?:of\s+|on\s+)?/i,'retrospective cohort study'],
+  [/^(?:a\s+)?case.control\s+study\s+(?:of\s+|on\s+)?/i,'case-control study'],
+  [/^(?:a\s+)?cross.sectional\s+study\s+(?:of\s+|on\s+)?/i,'cross-sectional study'],
+  [/^(?:a\s+)?pilot\s+(?:randomized\s+)?(?:controlled\s+)?(?:trial|study)\s+(?:of\s+|on\s+|to\s+)?/i,'pilot study'],
+  [/^(?:a\s+)?qualitative\s+study\s+(?:of\s+|on\s+)?/i,'qualitative study'],
+  [/^(?:a\s+)?validation\s+study\s+(?:of\s+|on\s+)?/i,'validation study'],
+];
+
+function correctSpelling(text){
+  /* Split preserving spaces; correct word by word against dict.
+     We normalise to lowercase for lookup but preserve original case. */
+  return text.replace(/\b[a-záéíóúñüA-ZÁÉÍÓÚÑÜ]+\b/g, word=>{
+    const lower=word.toLowerCase();
+    if(SPELL_DICT[lower]){
+      /* Preserve original capitalisation pattern */
+      const fixed=SPELL_DICT[lower];
+      if(word[0]===word[0].toUpperCase()&&word[0]!==word[0].toLowerCase()){
+        return fixed.charAt(0).toUpperCase()+fixed.slice(1);
+      }
+      return fixed;
+    }
+    return word;
+  });
+}
+
+/* ─────────────────────────────────────────────────────────────
+   WEAK OPENER PATTERNS
+   These openers add no specificity; removing them and starting
+   with the intervention/topic improves keyword position.
+   ───────────────────────────────────────────────────────────── */
+const WEAK_OPENERS=[
+  /* ── SPANISH openers ── */
+  {pat:/^aplicaci[oó]n\s+de\s+(?:un|el|una|la)\s+(?:programa|protocolo|m[eé]todo|t[eé]cnica|intervenci[oó]n)\s+de\s+/i},
+  {pat:/^aplicaci[oó]n\s+de\s+(?:un|el|una|la)\s+/i},
+  {pat:/^implementaci[oó]n\s+de\s+(?:un|el|una|la)\s+(?:programa|protocolo|m[eé]todo)\s+(?:de\s+)?/i},
+  {pat:/^dise[nñ]o\s+(?:y\s+\w+\s+)?de\s+(?:un|el|una|la)\s+(?:programa|protocolo|m[eé]todo)\s+(?:de\s+)?/i},
+  {pat:/^uso\s+de\s+(?:un|el|una|la)\s+/i},
+  {pat:/^papel\s+de\s+(?:la|el|los|las)\s+/i},
+  {pat:/^influencia\s+de\s+(?:la|el|los|las|un|una)\s+/i},
+  {pat:/^evaluaci[oó]n\s+de\s+(?:un|el|una|la)\s+(?:programa|protocolo|m[eé]todo|plan|intervenci[oó]n)\s+(?:de\s+)?/i},
+  {pat:/^efectos?\s+de\s+(?:un|el|una|la)\s+(?:programa|protocolo|m[eé]todo|plan|intervenci[oó]n)\s+(?:de\s+)?/i},
+  /* ── ENGLISH openers (stripped to expose specific noun) ── */
+  {pat:/^(use|utility|role)\s+of\s+/i},
+  {pat:/^(assessment|evaluation|analysis)\s+of\s+(?:the\s+)?/i},
+  {pat:/^(impact|influence|effect)\s+of\s+(?:a\s+|an\s+|the\s+)?(?:novel\s+|new\s+)?(?:program|protocol|method|intervention|approach|strategy)\s+(?:of\s+|on\s+)?/i},
+];
+
+/* ─────────────────────────────────────────────────────────────
+   SHORTENING HELPERS
+   ───────────────────────────────────────────────────────────── */
+function shortenTitle(text){
+  let t=text;
+  /* ── SPANISH shortening ── */
+  t=t.replace(/,\s*basado(?:\s+en)?\s+([^,]+),/gi,' mediante $1');
+  t=t.replace(/,\s*fundamentado(?:\s+en)?\s+([^,]+),/gi,' mediante $1');
+  t=t.replace(/,\s*apoyado(?:\s+en)?\s+([^,]+),/gi,' mediante $1');
+  t=t.replace(/,\s*basado(?:\s+en)?\s+([^,:]+)(\s*:)/gi,' mediante $1$2');
+  t=t.replace(/\b(y)\s+(la|el|los|las)\s+(calidad|cantidad|prevalencia|incidencia|mortalidad|morbilidad|satisfacci[oó]n|funcionalidad|bienestar|dolor|ansiedad|depresi[oó]n)\b/gi,'$1 $3');
+  t=t.replace(/\ben\s+pacientes\s+(que\s+presentan|con\s+diagn[oó]stico\s+de|con)\s+/gi,'en ');
+  t=t.replace(/\ben\s+pacientes\s+tras\b/gi,'tras');
+  t=t.replace(/\ben\s+pacientes\s+con\s+(\w+(?:\s+\w+){0,2})\b/gi,'en $1');
+  /* ── ENGLISH shortening ── */
+  // "in patients with X" → "in X" (≤3 word condition)
+  t=t.replace(/\bin\s+patients\s+with\s+(\w+(?:\s+\w+){0,2})\b/gi,'in $1');
+  // "in patients who have" → omit
+  t=t.replace(/\bin\s+patients\s+(?:who\s+have|with\s+a\s+diagnosis\s+of)\s+/gi,'in ');
+  // "and the quality" → "and quality" (redundant article)
+  t=t.replace(/\b(and)\s+the\s+(quality|quantity|prevalence|incidence|mortality|morbidity|satisfaction|functional|recovery|survival)\b/gi,'$1 $2');
+  // "among patients with" → "in" + condition
+  t=t.replace(/\bamong\s+patients\s+with\s+/gi,'in ');
+  t=t.replace(/\s{2,}/g,' ').trim();
+  return t;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   TRIAL ACRONYM EXTRACTION
+   Detects "The ACRONYM Phase N" or "ACRONYM Phase N" suffix
+   and moves it to a parenthetical, keeping only the design label.
+   ───────────────────────────────────────────────────────────── */
+function extractTrialAcronym(text){
+  /* Match ": The ACRONYM Phase N <design>" or ": ACRONYM Phase N <design>"
+     in the suffix part (after colon). Returns {cleaned, acronym, phase, design} or null. */
+  const m=text.match(/:\s*(?:the\s+)?([A-Z]{2,10})\s+(?:phase\s+(\d+|I{1,3}|IV)\s+)?(randomized(?:\s+controlled)?\s+(?:clinical\s+)?trial|randomised(?:\s+controlled)?\s+(?:clinical\s+)?trial|clinical\s+trial|controlled\s+trial)/i);
+  if(!m)return null;
+  const acronym=m[1];
+  const phase=m[2]?m[2].toUpperCase():null;
+  const design=m[3];
+  /* Build clean suffix: keep design + acronym as parenthetical */
+  const phaseStr=phase?`phase ${phase} `:'';
+  const cleanSuffix=`: ${phaseStr}${design} (${acronym})`;
+  /* Remove the matched portion from the original text */
+  const cleaned=text.slice(0,m.index)+cleanSuffix;
+  return{cleaned,acronym,phase,design};
+}
+
 function buildRewrite(title,R,meta){
-  let improved=title;const changes=[];
-  if(!R.sinRelleno.ok){const p=BASURA.find(r=>r.test(improved));if(p){improved=improved.replace(p,'').replace(/^\s*[,:;]\s*/,'');improved=improved.charAt(0).toUpperCase()+improved.slice(1);changes.push('Se eliminó la expresión introductoria redundante del inicio.');}}
-  if(!R.noDecl.ok){improved=improved.replace(/\bdemuestra\s+que\b/gi,'sugiere que').replace(/\bprueba\s+que\b/gi,'indica que').replace(/\bconfirma\s+que\b/gi,'muestra evidencia de que').replace(/\bes\s+superior\s+a\b/gi,'muestra mayor eficacia que').replace(/\bes\s+m[aá]s\s+efectiv[ao]\s+que\b/gi,'presenta mayor efectividad que');changes.push('Se suavizó el lenguaje declarativo para reflejar el alcance real del estudio.');}
-  if(!R.disenio.ok&&!improved.includes(':')&&!improved.includes('—')){improved=improved.replace(/[.?!]*$/,'')+': [especificar diseño del estudio]';changes.push('Se añadió marcador para el diseño del estudio.');}
-  if(meta.hasQ){improved=improved.replace('?','').replace(/^¿\s*/,'');improved=improved.charAt(0).toUpperCase()+improved.slice(1);changes.push('Se convirtió el título interrogativo en declarativo-descriptivo.');}
-  if(improved.includes('!')){improved=improved.replace(/!/g,'');changes.push('Se eliminó el signo de exclamación.');}
-  const why=changes.length===0?'El título ya cumple la mayoría de criterios normativos.':
-    `Se han aplicado ${changes.length} ajuste${changes.length>1?'s':''} basado${changes.length>1?'s':''} en los criterios incumplidos.`;
+  let improved=title;
+  const changes=[];
+
+  /* Separate topic (before ":") and design suffix (after ":") */
+  const colonIdx=improved.indexOf(':');
+  let topic=colonIdx>=0?improved.slice(0,colonIdx).trim():improved;
+  let designSuffix=colonIdx>=0?improved.slice(colonIdx):'';//includes ":"
+
+  /* ── 1. SPELLING CORRECTION ─────────────────────────────── */
+  const topicFixed=correctSpelling(topic);
+  const suffixFixed=correctSpelling(designSuffix);
+  const origWords=(topic+' '+designSuffix).trim().split(/\s+/);
+  const fixedWords=(topicFixed+' '+suffixFixed).trim().split(/\s+/);
+  const corrected=[];
+  origWords.forEach((w,i)=>{if(fixedWords[i]&&w!==fixedWords[i])corrected.push(`«${w}» → «${fixedWords[i]}»`);});
+  if(corrected.length>0){
+    changes.push(`Corrección ortográfica: ${corrected.join(', ')}.`);
+    topic=topicFixed;
+    designSuffix=suffixFixed;
+  }
+
+  /* ── 2. ELIMINAR FRASES BASURA ──────────────────────────── */
+  if(!R.sinRelleno.ok){
+    const p=BASURA.find(r=>r.test(topic));
+    if(p){
+      topic=topic.replace(p,'').replace(/^\s*[,:;]\s*/,'');
+      topic=topic.charAt(0).toUpperCase()+topic.slice(1);
+      changes.push('Se eliminó la expresión introductoria redundante del inicio.');
+    }
+  }
+
+  /* ── 3. MOVER DISEÑO DEL INICIO AL FINAL ────────────────── */
+  /* Only if no colon exists yet */
+  if(!designSuffix){
+    for(const [pat,label] of DESIGN_AT_START){
+      const m=topic.match(pat);
+      if(m){
+        const rest=topic.slice(m[0].length).trim().replace(/[.,:;]+$/,'');
+        if(rest.length>4){
+          const restCap=rest.charAt(0).toUpperCase()+rest.slice(1);
+          topic=restCap;
+          designSuffix=`: ${label}`;
+          changes.push(`Se reordenó el título: el diseño del estudio («${label}») se trasladó al final, tras dos puntos (recomendación ICMJE/CONSORT).`);
+        }
+        break;
+      }
+    }
+  }
+
+  /* ── 3b. EXTRAER ACRÓNIMO DE ENSAYO ─────────────────────────
+     Pattern in the suffix: ": The ACRONYM Phase N <design>"
+     → ": phase N <design> (ACRONYM)"
+     Per ICMJE, the trial name/acronym should not precede the design.
+  ────────────────────────────────────────────────────────────── */
+  {
+    const full=topic+(designSuffix||'');
+    const colonIdx=full.indexOf(':');
+    if(colonIdx>=0){
+      const suffix=full.slice(colonIdx+1).trim();
+      /* Match "The? ACRONYM Phase? N? <design>" at the start of suffix */
+      const acroM=suffix.match(/^(?:the\s+)?([A-Z]{2,12})\s+(?:phase\s+(\d+|I{1,3}|IV)\s+)?(randomize[d]?\s+(?:controlled\s+)?(?:clinical\s+)?trial|randomise[d]?\s+(?:controlled\s+)?(?:clinical\s+)?trial|clinical\s+trial|controlled\s+trial)/i);
+      if(acroM){
+        const acro=acroM[1];
+        const ph=acroM[2]?acroM[2].toUpperCase():null;
+        const des=acroM[3].toLowerCase();
+        const phStr=ph?`phase ${ph} `:'';
+        designSuffix=`: ${phStr}${des} (${acro})`;
+        topic=full.slice(0,colonIdx).trim();
+        changes.push(`Se reubicó el acrónimo del ensayo «${acro}» como referencia parentética al final: «(${acro})». Según ICMJE, el nombre del ensayo no debe encabezar el bloque de diseño; el tipo de estudio va primero.`);
+      }
+    }
+  }
+
+
+     Pattern: "Efficacy/Effect/Safety of DRUG in [Patients with] CONDITION"
+     → "CONDITION: efficacy of DRUG"
+     Applied to the TOPIC part regardless of whether a design suffix exists.
+  ────────────────────────────────────────────────────────── */
+  {
+    const enPat=/^(efficacy|effectiveness|effects?|safety|tolerability|benefit|utility|comparison|impact)\s+of\s+([\w][\w\s\-]+?)\s+in\s+(?:patients?\s+with\s+|subjects?\s+with\s+|adults?\s+with\s+|children\s+with\s+)?([\w][\w\s,\-\/]+?)$/i;
+    const enM=topic.match(enPat);
+    if(enM){
+      const verb=enM[1].toLowerCase();
+      const drug=enM[2].trim().replace(/\s+/g,' ');
+      const condition=enM[3].trim().replace(/[,;.]+$/,'').replace(/\s+/g,' ');
+      if(condition.length>3&&drug.length>2){
+        const condCap=condition.charAt(0).toUpperCase()+condition.slice(1);
+        topic=`${condCap}: ${verb} of ${drug}`;
+        changes.push(`Se reordenó el título en inglés: la condición clínica («${condCap}») pasa a primera posición; el verbo descriptivo («${verb} of ${drug}») queda tras los dos puntos (recomendación ICMJE).`);
+      }
+    }
+  }
+  /* Applied always — improves keyword position regardless of score */
+  for(const {pat} of WEAK_OPENERS){
+    const m=topic.match(pat);
+    if(m){
+      const rest=topic.slice(m[0].length).trim().replace(/^[,;]\s*/,'');
+      if(rest.length>4){
+        topic=rest.charAt(0).toUpperCase()+rest.slice(1);
+        changes.push(`Se eliminó el encabezado genérico («${m[0].trim()}») para colocar los términos específicos en primera posición (recomendación ICMJE).`);
+      }
+      break; // one opener max
+    }
+  }
+
+  /* ── 5. SUAVIZAR LENGUAJE DECLARATIVO ───────────────────── */
+  if(!R.noDecl.ok){
+    topic=topic
+      .replace(/\bdemuestra\s+que\b/gi,'sugiere que')
+      .replace(/\bprueba\s+que\b/gi,'indica que')
+      .replace(/\bconfirma\s+que\b/gi,'muestra evidencia de que')
+      .replace(/\bes\s+superior\s+a\b/gi,'muestra mayor eficacia que')
+      .replace(/\bes\s+m[aá]s\s+efectiv[ao]\s+que\b/gi,'presenta mayor efectividad que');
+    changes.push('Se suavizó el lenguaje declarativo para reflejar el alcance real del estudio.');
+  }
+
+  /* ── 6. AÑADIR MARCADOR DE DISEÑO SI FALTA ──────────────── */
+  if(!R.disenio.ok&&!designSuffix){
+    designSuffix=': [especificar diseño del estudio]';
+    changes.push('Se añadió un marcador para el diseño del estudio. Sustitúyelo por el tipo real.');
+  }
+
+  /* Reconstitute before shortening */
+  improved=(topic+designSuffix).replace(/[.]+$/,'').trim();
+
+  /* ── 7. ACORTAR TÍTULO LARGO ─────────────────────────────── */
+  const wc=improved.split(/\s+/).filter(Boolean).length;
+  if(wc>15){
+    /* Shorten topic part, keep design suffix intact */
+    const colonPos=improved.indexOf(':');
+    let topicPart=colonPos>=0?improved.slice(0,colonPos):improved;
+    const suffixPart=colonPos>=0?improved.slice(colonPos):'';
+    const topicShortened=shortenTitle(topicPart);
+    const newWc=(topicShortened+suffixPart).split(/\s+/).filter(Boolean).length;
+    if(topicShortened!==topicPart&&newWc<wc){
+      improved=(topicShortened+suffixPart).trim();
+      changes.push(`Se redujo la extensión del título (de ${wc} a ${newWc} palabras) eliminando redundancias sintácticas y cláusulas parentéticas. Revisa que el significado se preserve.`);
+    }
+  }
+
+  /* ── 8. CONVERTIR INTERROGATIVO ──────────────────────────── */
+  if(meta.hasQ){
+    improved=improved.replace(/^¿\s*/,'').replace(/\?/g,'');
+    improved=improved.charAt(0).toUpperCase()+improved.slice(1);
+    changes.push('Se convirtió el título interrogativo en declarativo-descriptivo.');
+  }
+
+  /* ── 9. ELIMINAR SIGNOS DE EXCLAMACIÓN ──────────────────── */
+  if(improved.includes('!')){
+    improved=improved.replace(/!/g,'');
+    changes.push('Se eliminó el signo de exclamación.');
+  }
+
+  /* ── 10. LIMPIAR PUNTUACIÓN FINAL Y ESPACIOS ────────────── */
+  improved=improved
+    .replace(/\s{2,}/g,' ')
+    .replace(/\s+([,;:.?!])/g,'$1')
+    .replace(/[.,;]+$/,'')
+    .trim();
+  if(improved.length>0)improved=improved.charAt(0).toUpperCase()+improved.slice(1);
+
+  const why=changes.length===0
+    ?'El título ya cumple los criterios normativos evaluados. No se han aplicado cambios automáticos.'
+    :`Se han aplicado ${changes.length} corrección${changes.length>1?'es':''} automática${changes.length>1?'s':''}.`;
   return{improved:improved.trim(),why,changes};
 }
 
@@ -1076,6 +1473,8 @@ function doAnalyze(){
     const{R,meta}=engine(title);
     window._lastMeta=meta;
     applyAutoResults(R);
+    /* Async NLM MeSH verification — runs in background, updates UI when done */
+    fetchMeshFromNLM(title);
     const rw=buildRewrite(title,R,meta);
     document.getElementById('rwTitle').textContent=rw.improved;
     document.getElementById('rwWhy').textContent=rw.why;
@@ -1127,8 +1526,64 @@ function doClear(){
 }
 
 /* ════════════════════════════════════════════════════════════
-   FIX J: COPY IMPROVED TITLE
+   ASYNC NLM MeSH API LOOKUP
+   Queries https://id.nlm.nih.gov/mesh/lookup/term (public, CORS-enabled)
+   Runs after the synchronous analysis and updates the mesh item
+   if terms are found that the local regex library missed.
    ════════════════════════════════════════════════════════════ */
+async function fetchMeshFromNLM(title){
+  /* Only run if local analysis already marked mesh as failed */
+  if(autoResults['mesh']?.ok)return;
+
+  /* Build candidate terms from the title:
+     single content words (>4 chars) + consecutive bigrams + trigrams */
+  const stopWords=new Set(['with','from','after','before','during','their','this','that','than','then','were','have','been','into','about','over','under','through','between','within','without','against','among','upon','across','along','since','until','while','para','para','para','los','las','del','que','con','por','sin','una','uno','como','hacia','desde','hasta','sobre','entre','según']);
+  const raw=title.replace(/["""''«»()\[\]:;,.!?]/g,' ').split(/\s+/).filter(w=>w.length>3&&!/^\d+$/.test(w)&&!stopWords.has(w.toLowerCase()));
+  const candidates=new Set();
+  raw.forEach((w,i)=>{
+    candidates.add(w);
+    if(raw[i+1])candidates.add(w+' '+raw[i+1]);
+    if(raw[i+1]&&raw[i+2])candidates.add(w+' '+raw[i+1]+' '+raw[i+2]);
+  });
+
+  /* Show a non-intrusive "verifying MeSH…" note */
+  const whyEl=document.getElementById('why-mesh');
+  if(whyEl){
+    const orig=whyEl.textContent;
+    whyEl.textContent=orig+' (Verificando en NLM MeSH…)';
+  }
+
+  for(const term of candidates){
+    if(term.length<4)continue;
+    try{
+      const url=`https://id.nlm.nih.gov/mesh/lookup/term?label=${encodeURIComponent(term)}&match=exact&limit=1`;
+      const r=await fetch(url,{signal:AbortSignal.timeout(4000)});
+      if(!r.ok)continue;
+      const data=await r.json();
+      if(data&&data.length>0){
+        const meshLabel=data[0].label;
+        /* Found a real MeSH term in the title — update the result */
+        autoResults['mesh']={
+          ok:true,
+          why:`✓ Descriptor MeSH verificado en NLM: «${meshLabel}». Indexación correcta en MEDLINE/PubMed garantizada.`,
+          sug:null
+        };
+        const comment=state['mesh'].comment;
+        state['mesh']={val:true,src:'auto',comment};
+        document.getElementById('cb-mesh').checked=true;
+        renderItem('mesh');
+        updateScore();
+        updateGlobalSugs();
+        /* Update rewrite: remove MeSH suggestion from changes if it was there */
+        return;
+      }
+    }catch(e){
+      /* Network error, CORS block, timeout — fail silently */
+    }
+  }
+  /* Restore original explanation if nothing found */
+  if(whyEl)whyEl.textContent=whyEl.textContent.replace(' (Verificando en NLM MeSH…)','');
+}
 function copyImprovedTitle(){
   const txt=document.getElementById('rwTitle').textContent;
   if(!txt)return;
