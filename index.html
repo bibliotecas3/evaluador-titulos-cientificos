@@ -770,11 +770,12 @@ function buildRewrite(title,R,meta){
   let improved=title;
   const changes=[];
 
-  const colonIdx=improved.indexOf(':');
+  // Separar por dos puntos o guion largo
+  const colonIdx=improved.search(/\s*[:\-–—]\s*/);
   let topic=colonIdx>=0?improved.slice(0,colonIdx).trim():improved;
-  let designSuffix=colonIdx>=0?improved.slice(colonIdx):'';
+  let designSuffix=colonIdx>=0?improved.slice(improved.indexOf(improved.match(/[:\-–—]/)[0])).trim():'';
 
-  /* 1. SPELLING CORRECTION */
+  /* 1. CORRECCIÓN ORTOGRÁFICA */
   const topicFixed=correctSpelling(topic);
   const suffixFixed=correctSpelling(designSuffix);
   const origWords=(topic+' '+designSuffix).trim().split(/\s+/);
@@ -786,6 +787,85 @@ function buildRewrite(title,R,meta){
     topic=topicFixed;
     designSuffix=suffixFixed;
   }
+
+  /* 2. ELIMINAR FRASES BASURA */
+  if(!R.sinRelleno.ok){
+    const p=BASURA.find(r=>r.test(topic));
+    if(p){
+      topic=topic.replace(p,'').replace(/^\s*[,:;]\s*/,'');
+      topic=topic.charAt(0).toUpperCase()+topic.slice(1);
+      changes.push('Se eliminó la expresión introductoria redundante del inicio.');
+    }
+  }
+
+  /* 3. REORDENAR: mover diseño del inicio al final */
+  if(!designSuffix){
+    for(const [pat,label] of DESIGN_AT_START){
+      const m=topic.match(pat);
+      if(m){
+        const rest=topic.slice(m[0].length).trim().replace(/[.,:;]+$/,'');
+        if(rest.length>4){
+          topic=rest.charAt(0).toUpperCase()+rest.slice(1);
+          designSuffix=': '+label;
+          changes.push('Se reordenó el título: el diseño del estudio («'+label+'») se trasladó al final, tras dos puntos.');
+        }
+        break;
+      }
+    }
+  }
+
+  /* 4. REORDENAR: mover términos clínicos específicos al inicio
+     Si el título empieza con descriptor de paciente genérico
+     (varón, mujer, paciente, hombre, niño, anciano…)
+     y hay un término clínico más específico después del separador,
+     intercambiar las partes */
+  const PATIENT_OPENER=/^(varón|varon|mujer|paciente|hombre|niña?|niño?|ancian[ao]|adulto|joven|adolescente|lactante|neonat[ao]|gestante|embarazada)\s+/i;
+  const IMPORTANCE_OPENER=/^(la\s+)?(importancia|papel|rol|utilidad|valor)\s+(de|del|de\s+la|de\s+los|de\s+las)\s+/i;
+
+  if(PATIENT_OPENER.test(topic)&&designSuffix){
+    // El subtítulo (tras los dos puntos o guion) contiene el término clínico clave
+    // Convertir: "Varón joven con X - Y: Z" → "Y: diagnóstico en varón joven con X [diseño]"
+    let subPart=designSuffix.replace(/^[\s:\-–—]+/,'').trim();
+    // Quitar "la importancia de la RMC" → extraer "RMC" o término principal
+    const impM=subPart.match(IMPORTANCE_OPENER);
+    if(impM){
+      const clinicalTerm=subPart.slice(impM[0].length).trim().replace(/[.,:;]+$/,'');
+      if(clinicalTerm.length>3){
+        const patientCtx=topic.replace(/[.,:;]+$/,'').trim().toLowerCase();
+        topic=clinicalTerm.charAt(0).toUpperCase()+clinicalTerm.slice(1);
+        designSuffix=': hallazgo en '+patientCtx;
+        changes.push('Se reordenó el título: el término clínico específico («'+clinicalTerm+'») pasa a primera posición (recomendación ICMJE). El contexto del paciente queda como subtítulo.');
+      }
+    } else {
+      // Intercambio directo: subtítulo → tema principal, tema original → contexto
+      const clinicalTerm=subPart.replace(/[.,:;]+$/,'').trim();
+      if(clinicalTerm.length>3){
+        const patientCtx=topic.replace(/[.,:;]+$/,'').trim().toLowerCase();
+        topic=clinicalTerm.charAt(0).toUpperCase()+clinicalTerm.slice(1);
+        designSuffix=': en '+patientCtx;
+        changes.push('Se reordenó el título: el término clínico específico («'+clinicalTerm+'») pasa a primera posición (recomendación ICMJE).');
+      }
+    }
+  } else if(IMPORTANCE_OPENER.test(designSuffix.replace(/^[\s:\-–—]+/,''))){
+    // "Condición clínica: la importancia de la RMC" → "RMC en condición clínica"
+    let subPart=designSuffix.replace(/^[\s:\-–—]+/,'').trim();
+    const impM=subPart.match(IMPORTANCE_OPENER);
+    if(impM){
+      const clinicalTerm=subPart.slice(impM[0].length).trim().replace(/[.,:;]+$/,'');
+      if(clinicalTerm.length>3){
+        const mainTopic=topic.trim().toLowerCase();
+        topic=clinicalTerm.charAt(0).toUpperCase()+clinicalTerm.slice(1)+' en '+mainTopic;
+        designSuffix='';
+        changes.push('Se eliminó el encabezado «'+impM[0].trim()+'» y se reordenó: la técnica/herramienta diagnóstica pasa a primera posición.');
+      }
+    }
+  }
+
+  /* 5. SUAVIZAR LENGUAJE DECLARATIVO */
+  if(!R.noDecl.ok){
+    topic=topic
+      .replace(/\bdemuestra\s+que\b/gi,'sugiere que')
+      .replace(/\bprueba\s+que\b/gi,'indica que')
 
   /* 2. ELIMINAR FRASES BASURA */
   if(!R.sinRelleno.ok){
